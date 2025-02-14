@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FaCrown, FaUser } from "react-icons/fa";
-import { Area, AreaChart, CartesianGrid, XAxis, Tooltip as RechartTooltip } from "recharts";
 import { fetchUsers, fetchChartData, User, ChartData } from "@/components/ranking/Ranking_user";
 import BackgroundAnimation from "@/components/layout/BackgroudAnimation";
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -42,6 +41,7 @@ const UserCard = ({
   return (
     <div className={`p-4 flex flex-col justify-center flex-1 ${borderClasses}`}>
       <div className="flex items-center relative h-40">
+        
         <div className="w-24 h-24 border-4 border-black rounded-full flex items-center justify-center mr-4 relative">
           <FaUser size={40} className="text-black" />
           {highlight && (
@@ -57,7 +57,7 @@ const UserCard = ({
             <div className="bg-green-400 h-4 rounded" style={{ width: `${(xp / 10000) * 100}%` }}></div>
             <div className="absolute top-0 right-0 h-full border-l-4 border-black"></div>
           </div>
-          <p className="text-gray-600 text-sm">이번달 획득 Eco XP🌱: {xp} / 10000</p>
+          <p className="text-gray-600 text-sm whitespace-nowrap">이번달 획득 Eco XP🌱: {xp} / 10000</p>
           <p className="text-gray-600 text-sm">{message}</p>
         </div>
         <div className="flex flex-col justify-center items-center text-4xl font-bold text-black pl-4 w-44">
@@ -295,21 +295,9 @@ export function Ranking() {
             {currentUser && (
               <EcoProgressBar totalXP={currentUser.totalPoints} grade={currentUser.grade} />
             )}
-            <Card className="p-6 h-[350px] flex justify-center items-center">
+            <Card className="p-6 h-[350px] flex justify-center items-center bg-white">
               <div>
-                <h2 className="text-xl font-bold mb-4 text-center">월별 획득 포인트</h2>
-                <AreaChart width={600} height={250} data={chartData}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis 
-                      dataKey="month" 
-                      type="category" 
-                      interval={0}
-                      padding={{ left: 20, right: 20 }} // 공백을 줘서 양 끝이 짤리지 않게끔
-                    />
-                  <RechartTooltip />
-                  <Area dataKey="주민평균" type="monotone" fill="rgba(34, 202, 236, 0.4)" stroke="rgb(34, 202, 236)" />
-                  <Area dataKey="사용자" type="monotone" fill="rgba(255, 99, 132, 0.4)" stroke="rgb(255, 99, 132)" />
-                </AreaChart>
+                {/* 고민중 */}
               </div>
             </Card>
           </div>

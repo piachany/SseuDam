@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import BackgroundAnimation from "@/components/layout/BackgroudAnimation";
 
 const images = [
-  '/Ranking/1.jpg',
+  '/Ranking/1.png',
   '/Ranking/2.jpg',
   '/Ranking/3.jpg',
   '/Ranking/3.5.2.jpg',
