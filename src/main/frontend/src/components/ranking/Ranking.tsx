@@ -6,7 +6,7 @@ import { FaCrown, FaUser } from "react-icons/fa";
 import { fetchUsers, User } from "@/components/ranking/Ranking_user";
 import BackgroundAnimation from "@/components/layout/BackgroudAnimation";
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import Dropdown from 'react-bootstrap/Dropdown';
+import Dropdown from "react-bootstrap/Dropdown";
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import TooltipComponent from 'react-bootstrap/Tooltip';
 
@@ -232,7 +232,7 @@ export function Ranking() {
   // 이번달 Eco XP 내림차순 정렬
   const sortedUsers = [...filteredUsers].sort((a, b) => b.monthlyPoints - a.monthlyPoints);
 
-  // 페이지네이션
+  // 페이지네이션 데이터
   const usersPerPage = 10;
   const paginatedUsers = sortedUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
 
@@ -328,8 +328,8 @@ export function Ranking() {
                             <FaCrown className={`mb-2 text-3xl ${medal.crown}`} />
                             <h2 className="text-xl font-bold">{user.name}</h2>
                             <p className="text-sm">{user.grade}</p>
-                            <p className="text-xs">이번달 Eco XP🌱: {user.monthlyPoints}</p>
-                            <p className="text-xs">총 Eco XP🌳: {user.totalPoints}</p>
+                            <p className="text-xs">이번달 Eco XP: {user.monthlyPoints}</p>
+                            <p className="text-xs">총 Eco XP: {user.totalPoints}</p>
                           </div>
                         </div>
                       </div>
@@ -358,8 +358,8 @@ export function Ranking() {
                             <FaCrown className={`mb-2 text-4xl ${medal.crown}`} />
                             <h2 className="text-2xl font-bold">{user.name}</h2>
                             <p className="text-lg">{user.grade}</p>
-                            <p className="text-md">이번달 Eco XP🌱: {user.monthlyPoints}</p>
-                            <p className="text-md">총 Eco XP🌳: {user.totalPoints}</p>
+                            <p className="text-md">이번달 Eco XP: {user.monthlyPoints}</p>
+                            <p className="text-md">총 Eco XP: {user.totalPoints}</p>
                           </div>
                         </div>
                       </div>
@@ -388,8 +388,8 @@ export function Ranking() {
                             <FaCrown className={`mb-2 text-3xl ${medal.crown}`} />
                             <h2 className="text-xl font-bold">{user.name}</h2>
                             <p className="text-sm">{user.grade}</p>
-                            <p className="text-xs">이번달 Eco XP🌱: {user.monthlyPoints}</p>
-                            <p className="text-xs">총 Eco XP🌱: {user.totalPoints}</p>
+                            <p className="text-xs">이번달 Eco XP: {user.monthlyPoints}</p>
+                            <p className="text-xs">총 Eco XP: {user.totalPoints}</p>
                           </div>
                         </div>
                       </div>
@@ -475,12 +475,12 @@ export function Ranking() {
               {currentUser && (
                 <EcoProgressBar totalXP={currentUser.totalPoints} grade={currentUser.grade} />
               )}
-              {/* 빈칸에 Character_Card.png 삽입 */}
+              {/* 캐릭터 카드 이미지: 클릭 시 Rank_Tier_Guide.tsx로 이동하며 state 전달 */}
               <img
                 src="/Ranking/Character_Card.png"
                 alt="Character Card"
-                className="mx-auto rounded-lg shadow-md mt-4"
-                onClick={() => navigate("/ranking/rank_tier_guide")}
+                className="mx-auto rounded-lg shadow-md mt-4 cursor-pointer"
+                onClick={() => navigate("/ranking/rank_tier_guide", { state: { scrollTo: 3 } })}
               />
             </div>
           </div>
