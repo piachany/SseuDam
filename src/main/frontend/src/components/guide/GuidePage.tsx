@@ -60,6 +60,14 @@ export function GuidePage() {
     window.scrollBy({ top: window.innerHeight * 1.48, behavior: 'smooth' })
   }
 
+  // 새로운 함수: 재질별 분리배출 가이드 섹션으로 스크롤
+  const scrollToGuide = () => {
+    const guideSection = document.getElementById("guide-section")
+    if (guideSection) {
+      guideSection.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
   return (
     <div className="relative min-h-screen">
       {/* 🔹 배경 애니메이션 */}
@@ -74,7 +82,6 @@ export function GuidePage() {
           ← 뒤로 가기
         </button>
       </div>
-
 
       {/* 🔹 이미지 섹션 */}
       <div className="flex flex-col items-center justify-center relative z-50 pt-16">
@@ -99,12 +106,12 @@ export function GuidePage() {
               }}
             />
 
-            {/* 📍 아래로 스크롤 화살표 + 좌우 버튼 (첫 이미지에만) */}
+            {/* 📍 아래로 스크롤 화살표 및 좌우 버튼 (첫 이미지에만) */}
             {index === 0 && (
-              <div className="absolute top-[90%] left-[47%] transform -translate-x-1/2 flex items-center space-x-6">
-                {/* 📌 왼쪽 버튼: 재질별 분리배출 방법 */}
+              <div className="absolute top-[80%] left-[47%] transform -translate-x-1/2 flex items-center space-x-6">
+                {/* 왼쪽 버튼: 재질별 분리배출 방법 → 스크롤 이동 */}
                 <motion.button
-                  onClick={() => window.scrollBy({ top: window.innerHeight * 1.5, behavior: 'smooth' })}
+                  onClick={scrollToGuide}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-700 transition"
@@ -112,12 +119,12 @@ export function GuidePage() {
                   재질별 분리배출 방법
                 </motion.button>
 
-                {/* 📍 기존 스크롤 애니메이션 */}
+                {/* 기존 스크롤 화살표 */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1, y: [0, 10, 0] }}
                   transition={{ repeat: Infinity, duration: 2 }}
-                  className="absolute top-[100%] left-[45%] transform -translate-x-1/2 flex flex-col items-center cursor-pointer"
+                  className="absolute top-[140%] left-[45%] transform -translate-x-1/2 flex flex-col items-center cursor-pointer"
                   onClick={scrollDown}
                 >
                   <p className="text-black text-sm mb-2">아래로 스크롤하세요</p>
@@ -132,7 +139,7 @@ export function GuidePage() {
                   </svg>
                 </motion.div>
 
-                {/* 📌 오른쪽 버튼: 3D 모델로 분리배출 알아보기 (주석 처리) */}
+                {/* 오른쪽 버튼 (비활성) */}
                 <motion.button
                   disabled
                   whileHover={{ scale: 1.05 }}
@@ -140,24 +147,12 @@ export function GuidePage() {
                 >
                   3D 모델로 분리배출 알아보기
                 </motion.button>
-
-                {/* 🔍 TODO: 3D 모델 기능 추가 시 아래 코드 활성화 */}
-                {/* 
-                <motion.button
-                  onClick={() => window.scrollBy({ top: window.innerHeight * 3, behavior: 'smooth' })}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
-                >
-                  3D 모델로 분리배출 알아보기
-                </motion.button>
-                */}
               </div>
             )}
           </section>
         ))}
 
-        {/* 🔹 재질별 분리배출 가이드 */}
+        {/* 🔹 재질별 분리배출 가이드 섹션 */}
         <section id="guide-section" className="w-full flex justify-center items-center relative">
           <motion.div
             className="w-full max-w-5xl bg-white shadow-xl p-6 rounded-lg z-50"
