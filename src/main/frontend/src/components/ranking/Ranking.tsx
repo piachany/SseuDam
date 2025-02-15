@@ -14,7 +14,92 @@ import TooltipComponent from 'react-bootstrap/Tooltip';
 const currentUserName = '김제니';
 const currentUserApartment = '공주아파트';
 
-// UserCard 컴포넌트 정의
+// =============================
+// 1) 애니메이션 및 오버레이 CSS 정의
+// =============================
+const AnimationStyles = () => (
+  <style>{`
+    @keyframes bounceIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.3);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.05);
+      }
+      70% {
+        transform: scale(0.9);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+    .animate-bounceIn {
+      animation: bounceIn 1s ease-out forwards;
+    }
+
+    /* 360도 회전을 위한 3D 관련 클래스 */
+    .rotate-3d-container {
+      perspective: 1000px;
+    }
+    .rotate-3d {
+      transition: transform 1s;
+      transform-style: preserve-3d;
+    }
+    .group:hover .rotate-3d {
+      transform: rotateY(360deg);
+    }
+
+    /* 스파클 효과를 위한 keyframes */
+    @keyframes sparkleSequence {
+      0%, 20% {
+        background-position: 0% 0%;
+        opacity: 1;
+      }
+      20.00001%, 25% {
+        opacity: 0;
+      }
+      25.00001%, 45% {
+        background-position: 75% 0%;
+        opacity: 1;
+      }
+      45.00001%, 50% {
+        opacity: 0;
+      }
+      50.00001%, 70% {
+        background-position: 0% 100%;
+        opacity: 1;
+      }
+      70.00001%, 75% {
+        opacity: 0;
+      }
+      75.00001%, 95% {
+        background-position: 100% 100%;
+        opacity: 1;
+      }
+      95.00001%, 100% {
+        opacity: 0;
+      }
+    }
+    .sparkle-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('/Ranking/sparkle.png') 0 0 no-repeat;
+      background-size: 200% 200%;
+      animation: sparkleSequence 6s infinite;
+      pointer-events: none;
+      z-index: 30;
+    }
+  `}</style>
+);
+
+// =============================
+// 2) UserCard 컴포넌트
+// =============================
 const UserCard = ({
   name,
   grade,
@@ -36,12 +121,15 @@ const UserCard = ({
   isFirst?: boolean;
   isLast?: boolean;
 }) => {
-  const borderClasses = `${isFirst ? 'rounded-t-lg border-t border-l border-r' : ''} ${isLast ? 'rounded-b-lg border-b border-l border-r' : ''} ${!isFirst && !isLast ? 'border-l border-r' : ''} ${highlight ? 'bg-green-100' : 'bg-white'}`;
-  
+  const borderClasses = `
+    ${isFirst ? 'rounded-t-lg border-t border-l border-r' : ''}
+    ${isLast ? 'rounded-b-lg border-b border-l border-r' : ''}
+    ${!isFirst && !isLast ? 'border-l border-r' : ''}
+    ${highlight ? 'bg-green-100' : 'bg-white'}
+  `;
   return (
     <div className={`p-4 flex flex-col justify-center flex-1 ${borderClasses}`}>
       <div className="flex items-center relative h-40">
-        
         <div className="w-24 h-24 border-4 border-black rounded-full flex items-center justify-center mr-4 relative">
           <FaUser size={40} className="text-black" />
           {highlight && (
@@ -57,7 +145,9 @@ const UserCard = ({
             <div className="bg-green-400 h-4 rounded" style={{ width: `${(xp / 10000) * 100}%` }}></div>
             <div className="absolute top-0 right-0 h-full border-l-4 border-black"></div>
           </div>
-          <p className="text-gray-600 text-sm whitespace-nowrap">이번달 획득 Eco XP🌱: {xp} / 10000</p>
+          <p className="text-gray-600 text-sm whitespace-nowrap">
+            이번달 획득 Eco XP🌱: {xp} / 10000
+          </p>
           <p className="text-gray-600 text-sm">{message}</p>
         </div>
         <div className="flex flex-col justify-center items-center text-4xl font-bold text-black pl-4 w-44">
@@ -69,12 +159,13 @@ const UserCard = ({
   );
 };
 
-// EcoProgressBar 컴포넌트 정의
-const EcoProgressBar = ({ totalXP, grade }: { totalXP: number, grade: string }) => {
+// =============================
+// 3) EcoProgressBar 컴포넌트
+// =============================
+const EcoProgressBar = ({ totalXP, grade }: { totalXP: number; grade: string }) => {
   const levelUpPoints = 10000;
   const progressPercentage = (totalXP / levelUpPoints) * 100;
   const remainingPoints = levelUpPoints - totalXP;
-
   return (
     <Card className="p-6 bg-white rounded-lg shadow-md relative w-full">
       <h2 className="text-xl font-bold mb-2">
@@ -83,9 +174,12 @@ const EcoProgressBar = ({ totalXP, grade }: { totalXP: number, grade: string }) 
       <br />
       <div className="mt-4 relative w-full h-6 bg-gray-300 rounded-full overflow-visible">
         <div className="h-full bg-green-500 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
-        <div className="absolute -top-8 z-20" style={{ left: `${progressPercentage}%`, transform: 'translateX(-50%)' }}>
+        <div
+          className="absolute -top-8 z-20"
+          style={{ left: `${progressPercentage}%`, transform: 'translateX(-50%)' }}
+        >
           <div className="bg-black text-white text-xs px-3 py-1 rounded-full shadow-md whitespace-nowrap flex items-center gap-1">
-             🌱 {remainingPoints} Eco XP 남음!
+            🌱 {remainingPoints} Eco XP 남음!
             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-black rotate-45"></div>
           </div>
         </div>
@@ -104,7 +198,9 @@ const EcoProgressBar = ({ totalXP, grade }: { totalXP: number, grade: string }) 
   );
 };
 
-// 메인 Ranking 컴포넌트
+// =============================
+// 4) 메인 Ranking 컴포넌트
+// =============================
 export function Ranking() {
   const [users, setUsers] = useState<User[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -124,35 +220,26 @@ export function Ranking() {
     loadData();
   }, []);
 
-  // 드롭다운 선택 변경 시 페이지 번호 리셋
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedApartment]);
 
-  // 드롭다운에 따른 데이터 필터링
+  // 필터링: 종합랭킹 또는 아파트별
   const filteredUsers = selectedApartment === "종합랭킹"
     ? users
     : users.filter(user => user.apartment === selectedApartment);
 
-  // 이번달 Eco XP 기준 내림차순 정렬
+  // 이번달 Eco XP 내림차순 정렬
   const sortedUsers = [...filteredUsers].sort((a, b) => b.monthlyPoints - a.monthlyPoints);
 
-  // 디버깅: 콘솔에 상태 출력
-  console.log("selectedApartment:", selectedApartment);
-  console.log("All users:", users);
-  console.log("Filtered users:", filteredUsers);
-  console.log("Sorted users:", sortedUsers);
-
-  // 랭킹보드 페이지네이션용 데이터
+  // 페이지네이션
   const usersPerPage = 10;
   const paginatedUsers = sortedUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
 
-  // 현재 사용자(공주아파트, 김제니) 정보
+  // 현재 사용자 (공주아파트, 김제니)
   const currentUser = users.find(u => u.name === currentUserName && u.apartment === currentUserApartment);
-  // 정렬된 목록에서 현재 사용자의 인덱스 (사용자 카드 섹션에서 –1위, +1위 위해)
   const currentIndex = sortedUsers.findIndex(u => u.name === currentUserName);
 
-  // 현재 사용자 중심으로 바로 위, 현재, 바로 아래 데이터를 준비 (존재할 경우)
   let userCards: (User & { position: 'above' | 'current' | 'below' })[] = [];
   if (currentIndex !== -1) {
     if (currentIndex > 0) {
@@ -171,7 +258,6 @@ export function Ranking() {
     if (currentPage < Math.ceil(sortedUsers.length / usersPerPage)) setCurrentPage(currentPage + 1);
   };
 
-  // 로딩 상태: 데이터가 아직 로드되지 않았다면
   if (users.length === 0) {
     return (
       <div className="relative min-h-screen">
@@ -185,9 +271,8 @@ export function Ranking() {
 
   return (
     <div className="relative min-h-screen">
-      {/* 백그라운드 애니메이션 추가 */}
+      <AnimationStyles />
       <BackgroundAnimation />
-
       <div className="container mx-auto p-6 relative z-50 pt-16">
         {/* 상단 헤더 및 드롭다운 */}
         <div className="flex justify-between items-center mb-8">
@@ -222,43 +307,145 @@ export function Ranking() {
           </Dropdown>
         </div>
 
-        {/* 1. 상위 사용자 카드 섹션 (Top 3) - 항상 표시 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {sortedUsers.slice(0, 3).map((user, index) => {
-            // 종합랭킹 모드에서는 상위 3명의 메달 색상을 강제로 오버라이드합니다.
-            const medal =
-              selectedApartment === "종합랭킹"
-                ? index === 0
-                  ? { bgColor: "bg-yellow-100", crownColor: "text-yellow-400" } // 1등: 금색
-                  : index === 1
-                  ? { bgColor: "bg-gray-200", crownColor: "text-gray-400" }     // 2등: 은색
-                  : { bgColor: "bg-orange-100", crownColor: "text-orange-400" }   // 3등: 동색
-                : { bgColor: user.bgColor || "", crownColor: user.crownColor || "" };
+        {/* 1. 상위 사용자 카드 (Top 3) - 데스크탑 */}
+        <div className="w-full">
+          <div className="hidden md:flex justify-center items-end relative">
+            {/* 2등 (왼쪽) */}
+            {sortedUsers[1] && (
+              <div className="flex flex-col items-center mx-4" style={{ marginBottom: '2rem' }}>
+                {(() => {
+                  const user = sortedUsers[1];
+                  const medal = selectedApartment === "종합랭킹"
+                    ? { bg: "bg-gray-200", crown: "text-gray-400" }
+                    : { bg: user.bgColor || "bg-gray-200", crown: user.crownColor || "text-gray-400" };
+                  return (
+                    <div className="relative flex flex-col items-center group rotate-3d-container">
+                      <img src="/Ranking/medal.png" alt="Medal Ribbon" className="w-16" />
+                      <div className="mt-[-8px] rotate-3d transition-transform duration-2000 relative w-64 h-64">
+                        <div className={`${medal.bg} w-full h-full rounded-full shadow-md relative animate-bounceIn`}>
+                          <div className="sparkle-overlay"></div>
+                          <div className="relative z-20 flex flex-col items-center justify-center p-4">
+                            <FaCrown className={`mb-2 text-3xl ${medal.crown}`} />
+                            <h2 className="text-xl font-bold">{user.name}</h2>
+                            <p className="text-sm">{user.grade}</p>
+                            <p className="text-xs">이번달 Eco XP🌱: {user.monthlyPoints}</p>
+                            <p className="text-xs">총 Eco XP🌳: {user.totalPoints}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+                <div className="mt-2 font-bold text-lg">2위</div>
+              </div>
+            )}
 
-            return (
-              <Card key={user.name} className={`p-6 text-center shadow-md ${medal.bgColor}`}>
-                <div className="flex justify-center mb-4 relative">
-                  <div className="w-24 h-24 bg-black rounded-full relative">
-                    <FaCrown className={`absolute -top-4 left-4 text-3xl transform rotate-[-25deg] ${medal.crownColor}`} />
+            {/* 1등 (중앙) */}
+            {sortedUsers[0] && (
+              <div className="flex flex-col items-center mx-4">
+                {(() => {
+                  const user = sortedUsers[0];
+                  const medal = selectedApartment === "종합랭킹"
+                    ? { bg: "bg-yellow-100", crown: "text-yellow-400" }
+                    : { bg: user.bgColor || "bg-yellow-100", crown: user.crownColor || "text-yellow-400" };
+                  return (
+                    <div className="relative flex flex-col items-center group rotate-3d-container">
+                      <img src="/Ranking/medal.png" alt="Medal Ribbon" className="w-20" />
+                      <div className="mt-[-10px] rotate-3d transition-transform duration-2000 relative w-80 h-80">
+                        <div className={`${medal.bg} w-full h-full rounded-full shadow-lg relative animate-bounceIn`}>
+                          <div className="sparkle-overlay"></div>
+                          <div className="relative z-20 flex flex-col items-center justify-center p-6">
+                            <FaCrown className={`mb-2 text-4xl ${medal.crown}`} />
+                            <h2 className="text-2xl font-bold">{user.name}</h2>
+                            <p className="text-lg">{user.grade}</p>
+                            <p className="text-md">이번달 Eco XP🌱: {user.monthlyPoints}</p>
+                            <p className="text-md">총 Eco XP🌳: {user.totalPoints}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+                <div className="mt-2 font-bold text-xl">1위</div>
+              </div>
+            )}
+
+            {/* 3등 (오른쪽) */}
+            {sortedUsers[2] && (
+              <div className="flex flex-col items-center mx-4" style={{ marginBottom: '2rem' }}>
+                {(() => {
+                  const user = sortedUsers[2];
+                  const medal = selectedApartment === "종합랭킹"
+                    ? { bg: "bg-orange-100", crown: "text-orange-400" }
+                    : { bg: user.bgColor || "bg-orange-100", crown: user.crownColor || "text-orange-400" };
+                  return (
+                    <div className="relative flex flex-col items-center group rotate-3d-container">
+                      <img src="/Ranking/medal.png" alt="Medal Ribbon" className="w-16" />
+                      <div className="mt-[-8px] rotate-3d transition-transform duration-2000 relative w-64 h-64">
+                        <div className={`${medal.bg} w-full h-full rounded-full shadow-md relative animate-bounceIn`}>
+                          <div className="sparkle-overlay"></div>
+                          <div className="relative z-20 flex flex-col items-center justify-center p-4">
+                            <FaCrown className={`mb-2 text-3xl ${medal.crown}`} />
+                            <h2 className="text-xl font-bold">{user.name}</h2>
+                            <p className="text-sm">{user.grade}</p>
+                            <p className="text-xs">이번달 Eco XP🌱: {user.monthlyPoints}</p>
+                            <p className="text-xs">총 Eco XP🌱: {user.totalPoints}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+                <div className="mt-2 font-bold text-lg">3위</div>
+              </div>
+            )}
+          </div>
+
+          {/* 모바일 Fallback */}
+          <div className="grid md:hidden grid-cols-1 gap-4 justify-items-center">
+            {sortedUsers.slice(0, 3).map((user, index) => {
+              let medalBg = "";
+              let crownColor = "";
+              let ribbonSize = "";
+              let rankLabel = `${index + 1}위`;
+              if (index === 0) {
+                medalBg = user.bgColor || "bg-yellow-100";
+                crownColor = user.crownColor || "text-yellow-400";
+                ribbonSize = "w-20";
+              } else if (index === 1) {
+                medalBg = user.bgColor || "bg-gray-200";
+                crownColor = user.crownColor || "text-gray-400";
+                ribbonSize = "w-16";
+              } else {
+                medalBg = user.bgColor || "bg-orange-100";
+                crownColor = user.crownColor || "text-orange-400";
+                ribbonSize = "w-16";
+              }
+              return (
+                <div key={user.name} className="relative flex flex-col items-center">
+                  <img src="/Ranking/medal.png" alt="Medal Ribbon" className={`${ribbonSize}`} />
+                  <div className="mt-[-8px]">
+                    <div className={`${medalBg} w-64 h-64 rounded-full shadow-md flex flex-col items-center justify-center p-4`}>
+                      <FaCrown className={`mb-2 text-3xl ${crownColor}`} />
+                      <h2 className="text-xl font-bold">{user.name}</h2>
+                      <p className="text-sm">{user.grade}</p>
+                      <p className="text-xs">이번달 Eco XP: {user.monthlyPoints}</p>
+                      <p className="text-xs">총 Eco XP: {user.totalPoints}</p>
+                    </div>
                   </div>
+                  <div className="mt-2 font-bold text-sm">{rankLabel}</div>
                 </div>
-                <h2 className="text-xl font-bold mb-1">{user.name}</h2>
-                <Button variant="secondary" className="mb-4 bg-green-100 text-green-800">{user.grade}</Button>
-                <p>이번달 획득 Eco XP🌱: {user.monthlyPoints}</p>
-                <p>총 획득 Eco XP🌳: {user.totalPoints}</p>
-              </Card>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         {/* 2. 사용자 카드 섹션 + 나의 등급 섹션 */}
         {(selectedApartment === currentUserApartment || selectedApartment === "종합랭킹") && currentIndex !== -1 && (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-            {/* 사용자 카드 섹션 (현재 사용자 기준 -1위, 현재, +1위) */}
             <Card className="p-0 overflow-hidden border border-gray-300 rounded-lg flex flex-col h-full">
               {userCards.map((user, idx) => {
                 let rankDifference = '';
-                
                 if (user.name === currentUserName) {
                   const percent = Math.round(((currentIndex + 1) / sortedUsers.length) * 100);
                   rankDifference = `상위 ${percent}%`;
@@ -268,7 +455,6 @@ export function Ranking() {
                 } else if (user.position === 'below') {
                   rankDifference = `${user.name}님이 맹 추격중!`;
                 }
-
                 return (
                   <UserCard
                     key={user.name}
@@ -285,17 +471,22 @@ export function Ranking() {
                 );
               })}
             </Card>
-
-            {/* 나의 등급 섹션 */}
             <div className="flex flex-col gap-6">
               {currentUser && (
                 <EcoProgressBar totalXP={currentUser.totalPoints} grade={currentUser.grade} />
               )}
+              {/* 빈칸에 Character_Card.png 삽입 */}
+              <img
+                src="/Ranking/Character_Card.png"
+                alt="Character Card"
+                className="mx-auto rounded-lg shadow-md mt-4"
+                onClick={() => navigate("/ranking/rank_tier_guide")}
+              />
             </div>
           </div>
         )}
 
-        {/* 3. 랭킹보드 섹션 - 항상 표시 */}
+        {/* 3. 랭킹보드 섹션 */}
         <div className="mt-8">
           <h2 className="text-2xl font-bold mb-4">🏆 {selectedApartment} 랭킹보드</h2>
           {paginatedUsers.length > 0 ? (
@@ -311,8 +502,8 @@ export function Ranking() {
                     <div className="w-full bg-gray-200 h-4 rounded mt-2 mb-1">
                       <div className="bg-green-400 h-4 rounded" style={{ width: `${(user.monthlyPoints / 10000) * 100}%` }}></div>
                     </div>
-                    <p className="text-gray-600 text-sm">이번달 획득 Eco XP🌱: {user.monthlyPoints} / 10000</p>
-                    <p className="text-gray-600 text-sm">총 획득 Eco XP🌳: {user.totalPoints}</p>
+                    <p className="text-gray-600 text-sm">이번달 Eco XP🌱: {user.monthlyPoints} / 10000</p>
+                    <p className="text-gray-600 text-sm">총 Eco XP🌳: {user.totalPoints}</p>
                   </div>
                 </Card>
               );
@@ -320,10 +511,10 @@ export function Ranking() {
           ) : (
             <p className="text-center text-gray-500">랭킹 데이터가 없습니다.</p>
           )}
-
-          {/* 페이지네이션 */}
           <div className="flex justify-center mt-4">
-            <Button onClick={handlePrevPage} disabled={currentPage === 1} className="mx-2 bg-black text-white">이전</Button>
+            <Button onClick={handlePrevPage} disabled={currentPage === 1} className="mx-2 bg-black text-white">
+              이전
+            </Button>
             {[...Array(Math.ceil(sortedUsers.length / usersPerPage)).keys()].map(page => (
               <Button
                 key={page + 1}
@@ -333,7 +524,9 @@ export function Ranking() {
                 {page + 1}
               </Button>
             ))}
-            <Button onClick={handleNextPage} disabled={currentPage >= Math.ceil(sortedUsers.length / usersPerPage)} className="mx-2 bg-black text-white">다음</Button>
+            <Button onClick={handleNextPage} disabled={currentPage >= Math.ceil(sortedUsers.length / usersPerPage)} className="mx-2 bg-black text-white">
+              다음
+            </Button>
           </div>
         </div>
       </div>

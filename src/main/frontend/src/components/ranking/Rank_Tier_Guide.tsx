@@ -5,8 +5,8 @@ import BackgroundAnimation from '@/components/layout/BackgroudAnimation'
 const images = [
   '/Ranking/1.png',
   '/Ranking/2.png',
-  '/Ranking/3.jpg',
-  '/Ranking/3.5.2.jpg',
+  '/Ranking/3.png',
+  '/Ranking/3.5.2.png',
   '/Ranking/4.jpg',
   '/Ranking/5.jpg',
   '/Ranking/6.jpg',
@@ -16,13 +16,6 @@ const images = [
 
 export default function RankTierGuide() {
   const navigate = useNavigate()
-
-  const scrollToSection = (index: number) => {
-    const nextSection = document.getElementById(`section-${index}`)
-    if (nextSection) {
-      nextSection.scrollIntoView({ behavior: 'smooth' })
-    }
-  }
 
   return (
     <div className="relative min-h-screen">
@@ -58,7 +51,7 @@ export default function RankTierGuide() {
               transition={{ duration: 0.3, delay: index * 0.1 }}
             />
 
-            {/* 🔽 아래로 스크롤 버튼 (첫 번째 이미지에만) */}
+            {/* 🔽 아래로 스크롤 버튼 (첫 번째 이미지에만)
             {index === 0 && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -78,7 +71,7 @@ export default function RankTierGuide() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
               </motion.div>
-            )}
+            )} */}
           </section>
         ))}
       </div>
