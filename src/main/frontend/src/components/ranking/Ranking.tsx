@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FaCrown, FaUser } from "react-icons/fa";
-import { fetchUsers, fetchChartData, User, ChartData } from "@/components/ranking/Ranking_user";
+import { fetchUsers, User } from "@/components/ranking/Ranking_user";
 import BackgroundAnimation from "@/components/layout/BackgroudAnimation";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Dropdown from 'react-bootstrap/Dropdown';
@@ -107,7 +107,6 @@ const EcoProgressBar = ({ totalXP, grade }: { totalXP: number, grade: string }) 
 // 메인 Ranking 컴포넌트
 export function Ranking() {
   const [users, setUsers] = useState<User[]>([]);
-  const [chartData, setChartData] = useState<ChartData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedApartment, setSelectedApartment] = useState("공주아파트");
   const navigate = useNavigate();
@@ -116,10 +115,8 @@ export function Ranking() {
     const loadData = async () => {
       try {
         const userData = await fetchUsers();
-        const chartInfo = await fetchChartData();
         console.log("Fetched users:", userData);
         setUsers(userData);
-        setChartData(chartInfo);
       } catch (error) {
         console.error("Error loading data:", error);
       }
@@ -225,126 +222,121 @@ export function Ranking() {
           </Dropdown>
         </div>
 
-      {/* 1. 상위 사용자 카드 섹션 (Top 3) - 항상 표시 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {sortedUsers.slice(0, 3).map((user, index) => {
-          // 종합랭킹 모드에서는 상위 3명의 메달 색상을 강제로 오버라이드합니다.
-          const medal =
-            selectedApartment === "종합랭킹"
-              ? index === 0
-                ? { bgColor: "bg-yellow-100", crownColor: "text-yellow-400" } // 1등: 금색
-                : index === 1
-                ? { bgColor: "bg-gray-200", crownColor: "text-gray-400" }     // 2등: 은색
-                : { bgColor: "bg-orange-100", crownColor: "text-orange-400" }   // 3등: 동색
-              : { bgColor: user.bgColor || "", crownColor: user.crownColor || "" };
-
-          return (
-            <Card key={user.name} className={`p-6 text-center shadow-md ${medal.bgColor}`}>
-              <div className="flex justify-center mb-4 relative">
-                <div className="w-24 h-24 bg-black rounded-full relative">
-                  <FaCrown className={`absolute -top-4 left-4 text-3xl transform rotate-[-25deg] ${medal.crownColor}`} />
-                </div>
-              </div>
-              <h2 className="text-xl font-bold mb-1">{user.name}</h2>
-              <Button variant="secondary" className="mb-4 bg-green-100 text-green-800">{user.grade}</Button>
-              <p>이번달 획득 Eco XP🌱: {user.monthlyPoints}</p>
-              <p>총 획득 Eco XP🌳: {user.totalPoints}</p>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* 2. 사용자 카드 섹션 + 나의 등급/차트 섹션 */}
-      {(selectedApartment === currentUserApartment || selectedApartment === "종합랭킹") && currentIndex !== -1 && (
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-          {/* 사용자 카드 섹션 (현재 사용자 기준 -1위, 현재, +1위) */}
-          <Card className="p-0 overflow-hidden border border-gray-300 rounded-lg flex flex-col h-full">
-          {userCards.map((user, idx) => {
-            let rankDifference = ''
-            
-            if (user.name === currentUserName) {
-              const percent = Math.round(((currentIndex + 1) / sortedUsers.length) * 100)
-              rankDifference = `상위 ${percent}%`
-            } else if (user.position === 'above') {
-              const difference = Math.abs(sortedUsers[currentIndex].monthlyPoints - user.monthlyPoints)
-              rankDifference = `${difference}🌱 차이!`
-            } else if (user.position === 'below') {
-              rankDifference = `${user.name}님이 맹 추격중!`
-            }
+        {/* 1. 상위 사용자 카드 섹션 (Top 3) - 항상 표시 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {sortedUsers.slice(0, 3).map((user, index) => {
+            // 종합랭킹 모드에서는 상위 3명의 메달 색상을 강제로 오버라이드합니다.
+            const medal =
+              selectedApartment === "종합랭킹"
+                ? index === 0
+                  ? { bgColor: "bg-yellow-100", crownColor: "text-yellow-400" } // 1등: 금색
+                  : index === 1
+                  ? { bgColor: "bg-gray-200", crownColor: "text-gray-400" }     // 2등: 은색
+                  : { bgColor: "bg-orange-100", crownColor: "text-orange-400" }   // 3등: 동색
+                : { bgColor: user.bgColor || "", crownColor: user.crownColor || "" };
 
             return (
-              <UserCard
-                key={user.name}
-                name={user.name}
-                grade={user.grade}
-                xp={user.monthlyPoints}
-                message={`총 획득 Eco XP🌳: ${user.totalPoints}`}
-                rank={`${sortedUsers.findIndex(u => u.name === user.name) + 1}위`}
-                rankDifference={rankDifference}
-                highlight={user.name === currentUserName}
-                isFirst={idx === 0}
-                isLast={idx === (userCards.length - 1)}
-              />
-            )
-          })}
-
-          </Card>
-
-          {/* 나의 등급 및 차트 섹션 */}
-          <div className="flex flex-col gap-6">
-            {currentUser && (
-              <EcoProgressBar totalXP={currentUser.totalPoints} grade={currentUser.grade} />
-            )}
-            <Card className="p-6 h-[350px] flex justify-center items-center bg-white">
-              <div>
-                {/* 고민중 */}
-              </div>
-            </Card>
-          </div>
-        </div>
-      )}
-
-      {/* 3. 랭킹보드 섹션 - 항상 표시 */}
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">🏆 {selectedApartment} 랭킹보드</h2>
-        {paginatedUsers.length > 0 ? (
-          paginatedUsers.map((user, index) => {
-            const actualIndex = (currentPage - 1) * usersPerPage + index;
-            return (
-              <Card key={user.name} className="flex items-center p-4 mb-2 shadow-sm">
-                <span className="text-xl font-bold w-12">{actualIndex + 1}위</span>
-                <div className="w-16 h-16 bg-black rounded-full mx-4"></div>
-                <div className="flex-grow">
-                  <h3 className="text-lg font-semibold">{user.name}</h3>
-                  <p className="text-sm text-gray-600">{user.grade}</p>
-                  <div className="w-full bg-gray-200 h-4 rounded mt-2 mb-1">
-                    <div className="bg-green-400 h-4 rounded" style={{ width: `${(user.monthlyPoints / 10000) * 100}%` }}></div>
+              <Card key={user.name} className={`p-6 text-center shadow-md ${medal.bgColor}`}>
+                <div className="flex justify-center mb-4 relative">
+                  <div className="w-24 h-24 bg-black rounded-full relative">
+                    <FaCrown className={`absolute -top-4 left-4 text-3xl transform rotate-[-25deg] ${medal.crownColor}`} />
                   </div>
-                  <p className="text-gray-600 text-sm">이번달 획득 Eco XP🌱: {user.monthlyPoints} / 10000</p>
-                  <p className="text-gray-600 text-sm">총 획득 Eco XP🌳: {user.totalPoints}</p>
                 </div>
+                <h2 className="text-xl font-bold mb-1">{user.name}</h2>
+                <Button variant="secondary" className="mb-4 bg-green-100 text-green-800">{user.grade}</Button>
+                <p>이번달 획득 Eco XP🌱: {user.monthlyPoints}</p>
+                <p>총 획득 Eco XP🌳: {user.totalPoints}</p>
               </Card>
             );
-          })
-        ) : (
-          <p className="text-center text-gray-500">랭킹 데이터가 없습니다.</p>
+          })}
+        </div>
+
+        {/* 2. 사용자 카드 섹션 + 나의 등급 섹션 */}
+        {(selectedApartment === currentUserApartment || selectedApartment === "종합랭킹") && currentIndex !== -1 && (
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+            {/* 사용자 카드 섹션 (현재 사용자 기준 -1위, 현재, +1위) */}
+            <Card className="p-0 overflow-hidden border border-gray-300 rounded-lg flex flex-col h-full">
+              {userCards.map((user, idx) => {
+                let rankDifference = '';
+                
+                if (user.name === currentUserName) {
+                  const percent = Math.round(((currentIndex + 1) / sortedUsers.length) * 100);
+                  rankDifference = `상위 ${percent}%`;
+                } else if (user.position === 'above') {
+                  const difference = Math.abs(sortedUsers[currentIndex].monthlyPoints - user.monthlyPoints);
+                  rankDifference = `${difference}🌱 차이!`;
+                } else if (user.position === 'below') {
+                  rankDifference = `${user.name}님이 맹 추격중!`;
+                }
+
+                return (
+                  <UserCard
+                    key={user.name}
+                    name={user.name}
+                    grade={user.grade}
+                    xp={user.monthlyPoints}
+                    message={`총 획득 Eco XP🌳: ${user.totalPoints}`}
+                    rank={`${sortedUsers.findIndex(u => u.name === user.name) + 1}위`}
+                    rankDifference={rankDifference}
+                    highlight={user.name === currentUserName}
+                    isFirst={idx === 0}
+                    isLast={idx === (userCards.length - 1)}
+                  />
+                );
+              })}
+            </Card>
+
+            {/* 나의 등급 섹션 */}
+            <div className="flex flex-col gap-6">
+              {currentUser && (
+                <EcoProgressBar totalXP={currentUser.totalPoints} grade={currentUser.grade} />
+              )}
+            </div>
+          </div>
         )}
 
-        {/* 페이지네이션 */}
-        <div className="flex justify-center mt-4">
-          <Button onClick={handlePrevPage} disabled={currentPage === 1} className="mx-2 bg-black text-white">이전</Button>
-          {[...Array(Math.ceil(sortedUsers.length / usersPerPage)).keys()].map(page => (
-            <Button
-              key={page + 1}
-              onClick={() => setCurrentPage(page + 1)}
-              className={currentPage === page + 1 ? "bg-black text-white mx-1" : "bg-white border border-black text-black mx-1"}
-            >
-              {page + 1}
-            </Button>
-          ))}
-          <Button onClick={handleNextPage} disabled={currentPage >= Math.ceil(sortedUsers.length / usersPerPage)} className="mx-2 bg-black text-white">다음</Button>
+        {/* 3. 랭킹보드 섹션 - 항상 표시 */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-4">🏆 {selectedApartment} 랭킹보드</h2>
+          {paginatedUsers.length > 0 ? (
+            paginatedUsers.map((user, index) => {
+              const actualIndex = (currentPage - 1) * usersPerPage + index;
+              return (
+                <Card key={user.name} className="flex items-center p-4 mb-2 shadow-sm bg-white">
+                  <span className="text-xl font-bold w-12">{actualIndex + 1}위</span>
+                  <div className="w-16 h-16 bg-black rounded-full mx-4"></div>
+                  <div className="flex-grow">
+                    <h3 className="text-lg font-semibold">{user.name}</h3>
+                    <p className="text-sm text-gray-600">{user.grade}</p>
+                    <div className="w-full bg-gray-200 h-4 rounded mt-2 mb-1">
+                      <div className="bg-green-400 h-4 rounded" style={{ width: `${(user.monthlyPoints / 10000) * 100}%` }}></div>
+                    </div>
+                    <p className="text-gray-600 text-sm">이번달 획득 Eco XP🌱: {user.monthlyPoints} / 10000</p>
+                    <p className="text-gray-600 text-sm">총 획득 Eco XP🌳: {user.totalPoints}</p>
+                  </div>
+                </Card>
+              );
+            })
+          ) : (
+            <p className="text-center text-gray-500">랭킹 데이터가 없습니다.</p>
+          )}
+
+          {/* 페이지네이션 */}
+          <div className="flex justify-center mt-4">
+            <Button onClick={handlePrevPage} disabled={currentPage === 1} className="mx-2 bg-black text-white">이전</Button>
+            {[...Array(Math.ceil(sortedUsers.length / usersPerPage)).keys()].map(page => (
+              <Button
+                key={page + 1}
+                onClick={() => setCurrentPage(page + 1)}
+                className={currentPage === page + 1 ? "bg-black text-white mx-1" : "bg-white border border-black text-black mx-1"}
+              >
+                {page + 1}
+              </Button>
+            ))}
+            <Button onClick={handleNextPage} disabled={currentPage >= Math.ceil(sortedUsers.length / usersPerPage)} className="mx-2 bg-black text-white">다음</Button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  )};
+  );
+}
