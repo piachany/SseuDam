@@ -36,9 +36,15 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   // ✅ 새로고침 시 localStorage에서 사용자 정보 복원
   syncUser: () => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      set({ user: JSON.parse(storedUser) });
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        set({ user: parsedUser });
+      }
+    } catch (error) {
+      console.error("Failed to parse user data from localStorage:", error);
+      localStorage.removeItem("user"); // 잘못된 데이터 제거
     }
   },
 }));
