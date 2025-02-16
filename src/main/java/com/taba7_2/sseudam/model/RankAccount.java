@@ -31,7 +31,4 @@ public class RankAccount {
 
     @Column(name = "ranking", nullable = false)
     private int ranking;
-
-    @Column(name = "tier", length = 20, nullable = false)
-    private String tier;
 }
