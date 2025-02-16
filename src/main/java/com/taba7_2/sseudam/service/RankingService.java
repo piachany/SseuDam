@@ -1,6 +1,7 @@
 package com.taba7_2.sseudam.service;
 
 import com.taba7_2.sseudam.model.RankAccount;
+import com.taba7_2.sseudam.repository.MonthlyPointsRepository;
 import com.taba7_2.sseudam.repository.RankAccountRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -11,9 +12,11 @@ import java.util.*;
 @Service
 public class RankingService {
     private final RankAccountRepository rankAccountRepository;
+    private final MonthlyPointsRepository monthlyPointsRepository;
 
-    public RankingService(RankAccountRepository rankAccountRepository) {
+    public RankingService(RankAccountRepository rankAccountRepository, MonthlyPointsRepository monthlyPointsRepository) {
         this.rankAccountRepository = rankAccountRepository;
+        this.monthlyPointsRepository = monthlyPointsRepository;
     }
 
     public Optional<RankAccount> getUserRanking(String userUid) {
@@ -29,7 +32,7 @@ public class RankingService {
     }
 
     public List<Map<String, Object>> getMonthlyPoints(String userUid) {
-        return rankAccountRepository.getMonthlyPointsByUser(userUid).stream().map(this::mapMonthlyPointsData).toList();
+        return monthlyPointsRepository.findMonthlyPointsByUser(userUid).stream().map(this::mapMonthlyPointsData).toList();
     }
 
     public Map<String, Object> getAboveUser(Long apartmentId, int month, String userUid) {
