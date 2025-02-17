@@ -1,68 +1,84 @@
-import { useState, useEffect } from "react";
-import api from "@/api/axiosInstance";
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { motion, AnimatePresence } from "framer-motion"
 
-interface UserData {
-  grade: string;
-  points: number;
-  nextLevelPoints: number;
-}
+const cardData = [
+  { date: "1주차", success: "90%", material: "플라스틱" },
+  { date: "2주차", success: "80%", material: "종이" },
+  { date: "3주차", success: "70%", material: "유리" },
+  { date: "4주차", success: "70%", material: "유리" },
+  { date: "한 달 ", success: "70%", material: "유리" },
+]
 
-export function RecyclingStats() {
-  const [user, setUser] = useState<UserData>({
-    grade: "등급 없음",
-    points: 0,
-    nextLevelPoints: 0,
-  });
+export default function RecyclingStats() {
+  const [current, setCurrent] = useState(0)
 
-  useEffect(() => {
-    api.get<UserData>("/user")
-      .then((res) => setUser(res.data))
-      .catch((err) => console.error("API 요청 오류:", err));
-  }, []);
+  const nextCard = () => setCurrent((prev) => (prev + 1) % cardData.length)
+  const prevCard = () => setCurrent((prev) => (prev - 1 + cardData.length) % cardData.length)
+  const getIndex = (index: number) => (index + cardData.length) % cardData.length
 
   return (
-    <div className="bg-green-100 min-h-screen flex flex-col items-center justify-center p-6 font-quicksand">
-      {/* 🔹 환경 보호 등급 정보 */}
-      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-lg text-center border border-green-300 shadow-green-400">
-        <h2 className="text-2xl font-bold text-green-900 mb-6">🌿 환경 보호등급 정보</h2>
+    <div className="flex flex-col items-center justify-center min-h-screen max-w-[500px] max-h-[500px] p-6 relative overflow-visible scale-90">
 
-        <div className="grid grid-cols-2 gap-6">
-          <div className="bg-green-50 p-4 rounded-lg shadow-md border border-green-200">
-            <p className="text-sm text-green-700">현재 등급</p>
-            <p className="text-3xl font-semibold text-green-900">{user.grade}</p>
-          </div>
-          <div className="bg-green-50 p-4 rounded-lg shadow-md border border-green-200">
-            <p className="text-sm text-green-700">승급까지 필요한 포인트</p>
-            <p className="text-3xl font-semibold text-green-900">
-              {user.nextLevelPoints > 0 ? `${user.nextLevelPoints} P` : "최고 등급"}
-            </p>
-          </div>
-        </div>
-      </div>
+      <h1 className="text-2xl font-bold mb-8 text-gray-800">♻️ 분리배출 기록</h1>
+       
+      <Button 
+        onClick={prevCard} 
+        className="absolute left-[calc(40%-480px)] top-1/2 transform -translate-x-full -translate-y-1/2 bg-gray-700 text-white px-4 py-2 rounded-full hover:bg-black transition">
+        ←
+      </Button>
+      <Button 
+        onClick={nextCard} 
+        className="absolute right-[calc(40%-480px)] top-1/2 transform translate-x-full -translate-y-1/2 bg-gray-700 text-white px-4 py-2 rounded-full hover:bg-black transition">
+        →
+      </Button>
 
-      {/* 🔹 분리배출 통계 */}
-      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-lg mt-8 text-center border border-green-300 shadow-green-400">
-        <h2 className="text-2xl font-bold text-green-900 mb-6">♻️ 최근 분리배출 기록</h2>
-        <p className="text-green-700 mb-4">분리배출 성공률 차트 및 배출 횟수</p>
+      {/* 카드 섹션 */}
+      <div className="relative w-[1000px] h-auto top-1/2 flex items-center justify-center overflow-hidden p-8 bg-white rounded-lg shadow-lg border border-green-300">
+        <AnimatePresence mode="wait">
+          {/* 왼쪽 미리보기 */}
+          <motion.div
+            key={`prev-${getIndex(current - 1)}`}
+            initial={{ scale: 0.8, x: "-100%" }}
+            animate={{ scale: 0.9, x: "-80%" }}
+            exit={{ scale: 0.8, x: "-150%" }}
+            transition={{ duration: 0.5 }}
+            className="absolute bg-green-50 p-3 rounded-lg shadow-sm border border-green-200 w-[300px] h-[250px] opacity-70"
+          >
+            <h2 className="text-xl font-semibold text-green-700">{cardData[getIndex(current - 1)].date} 기록</h2>
+          </motion.div>
 
-        {/* 🔹 분리배출 정보 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-green-50 p-4 rounded-lg shadow-md border border-green-200 flex flex-col items-center">
-            <p className="text-sm text-green-700">분리배출 성공률</p>
-            <p className="text-4xl font-semibold text-green-900">90%</p> {/* 예제 값 */}
-            <p className="text-green-700 text-sm mt-2 bg-green-100 px-2 py-1 rounded">
-              가장 잘 분리배출한 재질: 플라스틱 {/* 예제 값 */}
-            </p>
-          </div>
+          {/* 메인 카드 */}
+          <motion.div
+            key={`current-${current}`}
+            initial={{ scale: 0.8, x: 0 }}
+            animate={{ scale: 1, x: 0 }}
+            exit={{ scale: 0.8, x: "-100%" }}
+            transition={{ duration: 0.6 }}
+            className="z-10 bg-white p-8 rounded-lg shadow-md border border-green-200 w-[500px] h-[400px]"
+          >
+            <h2 className="text-2xl font-semibold text-green-900 mb-4">{cardData[current].date} 분리배출 기록</h2>
+            <p className="text-green-700 mb-6 text-lg">성공률 차트 및 배출 횟수</p>
+            <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+              <h3 className="text-xl font-bold text-green-900 mb-2">분리배출 성공률</h3>
+              <p className="text-4xl font-bold text-green-600 mb-4">{cardData[current].success}</p>
+              <p className="text-md text-green-700">가장 잘 분리배출한 재질: {cardData[current].material}</p>
+            </div>
+          </motion.div>
 
-          {/* 🔹 차트 영역 */}
-          <div className="aspect-square bg-green-200 rounded-lg flex items-center justify-center text-green-700">
-            📊 차트 영역 {/* 차트 라이브러리 활용 가능 */}
-          </div>
-        </div>
+          {/* 오른쪽 미리보기 */}
+          <motion.div
+            key={`next-${getIndex(current + 1)}`}
+            initial={{ scale: 0.8, x: "100%" }}
+            animate={{ scale: 0.9, x: "80%" }}
+            exit={{ scale: 0.8, x: "150%" }}
+            transition={{ duration: 0.5 }}
+            className="absolute bg-green-50 p-3 rounded-lg shadow-sm border border-green-200 w-[300px] h-[250px] opacity-70"
+          >
+            <h2 className="text-xl font-semibold text-green-700">{cardData[getIndex(current + 1)].date} 기록</h2>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
-  );
+  )
 }
-
-export default RecyclingStats;

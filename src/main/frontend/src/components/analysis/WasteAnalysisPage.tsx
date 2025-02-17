@@ -14,7 +14,7 @@ export default function WasteAnalysisPage() {
     sectionsRef.current[index]?.scrollIntoView({ behavior: "smooth" });
     setCurrentSection(index);
   };
-  
+
   return (
     <div className="min-h-screen bg-white overflow-hidden relative">
       {/* 백그라운드 애니메이션 추가 */}
@@ -41,7 +41,7 @@ export default function WasteAnalysisPage() {
           </motion.div>
         </section>
 
-        {/* ✅ 두 번째 섹션: 로고 (로딩) */}
+        {/* ✅ 두 번째 섹션: 로딩 화면 */}
         <section ref={(el) => (sectionsRef.current[1] = el)} className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1, y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-lg mb-4">
             로딩 중...
@@ -73,21 +73,12 @@ export default function WasteAnalysisPage() {
         <section className="min-w-full py-20 bg-gray-50/50">
           <div className="w-[1500px] h-[800px] mx-auto grid grid-cols-2 gap-8 text-center">
             <div className="p-6 bg-white/70 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold flex items-center justify-center gap-2">
-                ✅ 올바른 분리배출
-              </h3>
-              <img src="/images/correct.png" alt="올바른 분리배출" className="w-16 h-16 rounded-full mx-auto mt-4" />
-              <p className="italic text-gray-500 mt-4">"XX% 올바른 배출을 하였어요!"</p>
-              <p className="mt-2 text-gray-600">총 차감 포인트 : XXX</p>
+              <h3 className="text-2xl font-bold">✅ 올바른 분리배출</h3>
+              <p className="italic text-gray-500 mt-4">"재활용이 쉬운 상태로 배출되었습니다."</p>
             </div>
-
             <div className="p-6 bg-white/70 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold flex items-center justify-center gap-2">
-                ❌ 잘못된 분리배출
-              </h3>
-              <img src="/images/incorrect.png" alt="잘못된 분리배출" className="w-16 h-16 rounded-full mx-auto mt-4" />
-              <p className="italic text-gray-500 mt-4">"XX% 잘못된 배출"</p>
-              <p className="mt-2 text-gray-600">총 흭득 포인트 : XXX</p>
+              <h3 className="text-2xl font-bold">❌ 잘못된 분리배출</h3>
+              <p className="italic text-gray-500 mt-4">"이물질이 포함되어 있습니다."</p>
             </div>
           </div>
         </section>

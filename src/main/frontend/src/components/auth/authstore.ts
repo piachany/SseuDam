@@ -1,53 +1,50 @@
+// src/components/auth/authstore.ts
 import create from "zustand";
+import { User } from "@/types/auth"; // ✅ 정확한 User 타입 import
 
-// 사용자 인터페이스 정의
-interface User {
-  uid: string;
-  email?: string;
-  username?: string;
-  lastLogin?: string;
-  token?: string;
-  role?: string;
-}
 
-// Zustand 상태 인터페이스 정의
 interface AuthState {
-  user: User | null;
-  setUser: (user: User) => void;
-  clearUser: () => void;
-  syncUser: () => void; // ✅ 새로고침 시 localStorage에서 상태 복원
+    user: User | null;
+    setUser: (user: User | null) => void;  // user 또는 null
+    clearUser: () => void;
+    syncUser: () => void;
 }
 
-// Zustand 상태 관리
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
+    user: null,
 
-  // ✅ 로그인 시 사용자 정보 저장 및 localStorage 업데이트
-  setUser: (user) => {
-    localStorage.setItem("user", JSON.stringify(user));
-    set({ user });
-  },
+    setUser: (user) => {
+        try {
+            if (user) {
+                localStorage.setItem("user", JSON.stringify(user));
+            } else {
+                localStorage.removeItem("user"); // 사용자 정보 제거
+            }
+            set({ user });
+        } catch (e) {
+            console.error("Failed to save user to localStorage:", e);
+        }
+    },
 
-  // ✅ 로그아웃 시 상태 초기화 및 localStorage 삭제
-  clearUser: () => {
-    localStorage.removeItem("user");
-    set({ user: null });
-  },
+    clearUser: () => {
+        localStorage.removeItem("user");
+        localStorage.removeItem("isAdmin"); // isAdmin도 함께 제거
+        set({ user: null });
+    },
 
-  // ✅ 새로고침 시 localStorage에서 사용자 정보 복원
-  syncUser: () => {
-    try {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        set({ user: parsedUser });
-      }
-    } catch (error) {
-      console.error("Failed to parse user data from localStorage:", error);
-      localStorage.removeItem("user"); // 잘못된 데이터 제거
-    }
-  },
+    syncUser: () => {
+        try {
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
+                const parsedUser = JSON.parse(storedUser);
+                set({ user: parsedUser });
+            }
+        } catch (error) {
+            console.error("Failed to parse user data from localStorage:", error);
+            localStorage.removeItem("user"); // 잘못된 데이터 제거
+        }
+    },
 }));
 
-// ✅ 애플리케이션이 실행될 때 자동으로 상태 복원
+// 애플리케이션이 실행될 때 자동으로 상태 복원
 useAuthStore.getState().syncUser();

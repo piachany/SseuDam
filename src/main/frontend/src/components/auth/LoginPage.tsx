@@ -7,8 +7,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { login } from "@/services/api/auth";
 import { User } from "@/types/auth";
-import { auth } from "@/lib/firebase/firebase"; // ✅ Firebase 인증 추가
-import { signInWithEmailAndPassword } from "firebase/auth"; // ✅ Firebase 로그인 함수 가져오기
+import { auth } from "@/lib/firebase/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc, getFirestore } from "firebase/firestore";
 
 interface LoginError extends Error {
   message: string;
@@ -23,6 +24,23 @@ export function LoginPage() {
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // ✅ Bypass 로그인 (개발용)
+  const bypassLogin = () => {
+    const bypassUserData: User = {
+      uid: 'bypass-user',
+      email: 'bypass@example.com',
+      nickname: 'Bypass User',
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString(),
+      monthly_points: 0,
+      isGuest: false,
+      role: 'user',
+      token: 'bypass-token' // token 추가
+    };
+    setUser(bypassUserData);
+    navigate("/home");
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -34,37 +52,65 @@ export function LoginPage() {
     setError("");
 
     try {
-      // ✅ Firebase 사용자 로그인 (올바른 import 사용)
+      // ✅ Firebase 사용자 로그인
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
       if (!firebaseUser) throw new Error("🚫 Firebase 사용자 인증 실패");
 
       // ✅ Firebase 토큰 가져오기
       const idToken = await firebaseUser.getIdToken(true);
-      console.log("🔑 Firebase 토큰:", idToken);
-
-      // ✅ 토큰을 localStorage에 저장
       localStorage.setItem("token", idToken);
 
-      // ✅ 백엔드 로그인 요청 (Firebase 토큰 포함)
-      const response = await login({
-        email,
-        password
-      });
+      // ✅ Firestore에서 유저 데이터 가져오기
+      const db = getFirestore();
+      const userDocRef = doc(db, "users", firebaseUser.uid);
+      const userDocSnapshot = await getDoc(userDocRef);
 
-      // ✅ 백엔드에서 받은 사용자 정보 설정
-      const userData: User = {
+      let userData: User;
+
+      if (userDocSnapshot.exists()) {
+        const userDataFromFirestore = userDocSnapshot.data();
+
+        if (userDataFromFirestore.role === "admin") {
+          userData = {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email || "",
+            nickname: userDataFromFirestore.nickname,
+            createdAt: userDataFromFirestore.createdAt,
+            lastLogin: userDataFromFirestore.lastLogin,
+            monthly_points: userDataFromFirestore.monthly_points || 0,
+            isGuest: false,
+            role: "admin",
+            token: idToken
+          };
+
+          setUser(userData);
+          localStorage.setItem("user", JSON.stringify(userData));
+          localStorage.setItem("isAdmin", "true");
+          navigate("/admin");
+          return;
+        }
+      }
+
+      // ✅ 백엔드 로그인 요청 (Firebase 토큰 포함)
+      const response = await login({ email, password });
+
+      userData = {
         uid: response.uid,
         email: response.email,
         nickname: response.nickname,
         createdAt: response.createdAt,
         lastLogin: response.lastLogin,
+        monthly_points: response.monthly_points,
         isGuest: false,
-        role: "user"
+        role: "user",
+        token: idToken
       };
 
       setUser(userData);
-      navigate("/home"); // ✅ 로그인 후 홈 이동
+      localStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem("isAdmin", "false");
+      navigate("/home");
     } catch (error) {
       console.error("🚨 로그인 에러:", error);
       const loginError = error as LoginError;
@@ -83,7 +129,8 @@ export function LoginPage() {
       createdAt: currentTime,
       lastLogin: currentTime,
       isGuest: true,
-      role: "user"
+      role: "user",
+      token: `guest-${Date.now()}` // token 추가
     };
     setUser(guestData);
     navigate("/home");
@@ -102,6 +149,14 @@ export function LoginPage() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+
+        <Button
+          type="button"
+          onClick={bypassLogin}
+          className="w-full h-10 mb-4 bg-green-500 text-white hover:bg-green-600"
+        >
+          Bypass Login (개발용)
+        </Button>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>

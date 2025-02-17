@@ -1,27 +1,83 @@
 package com.taba7_2.sseudam.controller;
 
+import com.google.firebase.auth.FirebaseAuthException;
+import com.taba7_2.sseudam.model.RankAccount;
+import com.taba7_2.sseudam.repository.RankAccountRepository;
+import com.taba7_2.sseudam.service.FirebaseAuthService;
 import com.taba7_2.sseudam.service.RankingService;
-import com.taba7_2.sseudam.dto.RankingResponseDto;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/rankings")
 public class RankingController {
-
     private final RankingService rankingService;
+    private final FirebaseAuthService firebaseAuthService;
 
-    public RankingController(RankingService rankingService) {
+    public RankingController(RankingService rankingService, FirebaseAuthService firebaseAuthService) {
         this.rankingService = rankingService;
+        this.firebaseAuthService = firebaseAuthService;
     }
 
     /**
-     * ✅ 특정 아파트의 사용자 중심 랭킹 조회 (월별)
-     * ✅ 사용자가 선택한 아파트의 랭킹만 반환
+     * ✅ /api/rankings - 모든 랭킹 정보 한 번에 제공
      */
     @GetMapping
-    public RankingResponseDto getApartmentRankings(@RequestHeader("Authorization") String authorizationHeader,
-                                                   @RequestParam("month") int month,
-                                                   @RequestParam(value = "apartment_id", required = false) Long apartmentId) {
-        return rankingService.getRankingsForUser(authorizationHeader, month, apartmentId);
+    public ResponseEntity<Map<String, Object>> getDashboardData(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestParam(required = false) Long apartmentId
+    ) {
+        try {
+            // 🔹 Firebase 토큰에서 UID 가져오기
+            String userUid = firebaseAuthService.getUidFromToken(authorizationHeader);
+            int currentMonth = java.time.LocalDate.now().getMonthValue();
+
+            // 🔹 사용자 정보 가져오기
+            Optional<RankAccount> userRankOpt = rankingService.getUserRanking(userUid);
+            if (userRankOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("message", "User ranking not found"));
+            }
+            RankAccount user = userRankOpt.get();
+
+            // 🔹 TOP 3 랭킹 조회
+            List<Map<String, Object>> top3Users = rankingService.getTop3Rankings(currentMonth);
+
+            // 🔹 사용자의 아파트 랭킹 조회
+            List<Map<String, Object>> userApartmentRankings = rankingService.getApartmentRankings(user.getApartmentId(), currentMonth);
+
+            // 🔹 선택한 아파트의 전체 랭킹 (배너에서 선택한 경우)
+            List<Map<String, Object>> selectedApartmentRankings = (apartmentId != null)
+                    ? rankingService.getApartmentRankings(apartmentId, currentMonth)
+                    : null;
+
+            // 🔹 사용자의 위/아래 랭킹 찾기
+            Map<String, Object> aboveUser = rankingService.getAboveUser(user.getApartmentId(), currentMonth, userUid);
+            Map<String, Object> belowUser = rankingService.getBelowUser(user.getApartmentId(), currentMonth, userUid);
+
+            // 🔹 월별 획득 포인트 조회
+            List<Map<String, Object>> monthlyPoints = rankingService.getMonthlyPoints(userUid);
+
+            // ✅ 응답 데이터 구성
+            Map<String, Object> response = new HashMap<>();
+            response.put("user", Map.of(
+                    "userUid", user.getUid(),
+                    "nickname", user.getNickname(),
+                    "apartmentId", user.getApartmentId(),
+                    "monthlyPoints", user.getMonthlyPoints(),
+                    "accumulatedPoints", user.getAccumulatedPoints()
+            ));
+            response.put("aboveUser", aboveUser);
+            response.put("belowUser", belowUser);
+            response.put("top3Users", top3Users);
+            response.put("userApartmentRankings", userApartmentRankings);
+            response.put("selectedApartmentRankings", selectedApartmentRankings);
+            response.put("monthlyPoints", monthlyPoints);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", "Internal Server Error: " + e.getMessage()));
+        }
     }
 }
