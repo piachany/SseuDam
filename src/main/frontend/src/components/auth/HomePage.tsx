@@ -52,24 +52,6 @@ const environmentVideos = [
     description: "플라스틱 문제와 대안",
     thumbnail: "https://img.youtube.com/vi/0eougPjZrd8/0.jpg",
     link: "https://youtu.be/0eougPjZrd8?si=1cMnJ4gQsFg1VmNB"
-  },
-  {
-    title: "생물 다양성 보전",
-    description: "생태계 보호의 중요성",
-    thumbnail: "https://img.youtube.com/vi/cJAUC_lfy2E/0.jpg",
-    link: "https://youtu.be/cJAUC_lfy2E?si=QEuDhQRdB3f-UCKq"
-  },
-  {
-    title: "탄소 중립을 향한 여정",
-    description: "기업과 개인의 탄소 중립 노력",
-    thumbnail: "https://img.youtube.com/vi/3fGhGsh7g1I/0.jpg",
-    link: "https://youtu.be/3fGhGsh7g1I?si=1MeqfQ1f1EAF2twz"
-  },
-  {
-    title: "친환경 농업의 미래",
-    description: "지속 가능한 농업 방식",
-    thumbnail: "https://img.youtube.com/vi/Q8E13vlvKD4/0.jpg",
-    link: "https://youtu.be/Q8E13vlvKD4?si=0Wj6q0PTFT941nP9"
   }
 ];
 
