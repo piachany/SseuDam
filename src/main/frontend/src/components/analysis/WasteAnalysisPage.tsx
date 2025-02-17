@@ -1,17 +1,18 @@
 import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";  // ✅ navigate를 실제로 사용
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import BackgroundAnimation from "@/components/layout/BackgroudAnimation";
 
-export default function WasteAnalysisPage() {
-  const navigate = useNavigate();
+function WasteAnalysisPage() {
+  const navigate = useNavigate(); // ✅ 실제로 사용됨
   const [currentSection, setCurrentSection] = useState(0);
-  const sectionsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const sectionsRef = useRef<Array<HTMLDivElement | null>>([]);
 
   // 🔹 특정 섹션으로 부드럽게 스크롤
   const scrollToSection = (index: number) => {
-    sectionsRef.current[index]?.scrollIntoView({ behavior: "smooth" });
+    const section = sectionsRef.current[index]; // ✅ HTMLDivElement | null 타입
+    section?.scrollIntoView({ behavior: "smooth" });
     setCurrentSection(index);
   };
 
@@ -27,7 +28,7 @@ export default function WasteAnalysisPage() {
 
       <div className="relative z-50 pt-16">
         {/* ✅ 첫 번째 섹션: 메인 타이틀 */}
-        <section ref={(el) => (sectionsRef.current[0] = el)} className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-gray-100/50">
+        <section ref={(el) => (sectionsRef.current[0] = el as HTMLDivElement | null)} className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-gray-100/50">
           <motion.h1 initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} className="text-6xl font-extrabold">
             <span className="text-blue-600">"지구</span>를 위한 한걸음"
           </motion.h1>
@@ -42,7 +43,7 @@ export default function WasteAnalysisPage() {
         </section>
 
         {/* ✅ 두 번째 섹션: 로딩 화면 */}
-        <section ref={(el) => (sectionsRef.current[1] = el)} className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50">
+        <section ref={(el) => (sectionsRef.current[1] = el as HTMLDivElement | null)} className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1, y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-lg mb-4">
             로딩 중...
           </motion.div>
@@ -59,7 +60,7 @@ export default function WasteAnalysisPage() {
         </section>
 
         {/* ✅ 세 번째 섹션: AI 분석 결과 */}
-        <section ref={(el) => (sectionsRef.current[2] = el)} className="min-w-full py-20 flex flex-col items-center justify-center text-center bg-white/50">
+        <section ref={(el) => (sectionsRef.current[2] = el as HTMLDivElement | null)} className="min-w-full py-20 flex flex-col items-center justify-center text-center bg-white/50">
           <h2 className="text-4xl font-bold">AI 분석 결과</h2>
           <p className="text-gray-500">재질 및 상태 분류 결과를 확인하세요</p>
 
@@ -69,21 +70,7 @@ export default function WasteAnalysisPage() {
           </div>
         </section>
 
-        {/* ✅ 네 번째 섹션: 올바른 & 잘못된 분리배출 */}
-        <section className="min-w-full py-20 bg-gray-50/50">
-          <div className="w-[1500px] h-[800px] mx-auto grid grid-cols-2 gap-8 text-center">
-            <div className="p-6 bg-white/70 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold">✅ 올바른 분리배출</h3>
-              <p className="italic text-gray-500 mt-4">"재활용이 쉬운 상태로 배출되었습니다."</p>
-            </div>
-            <div className="p-6 bg-white/70 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold">❌ 잘못된 분리배출</h3>
-              <p className="italic text-gray-500 mt-4">"이물질이 포함되어 있습니다."</p>
-            </div>
-          </div>
-        </section>
-
-        {/* ✅ 추가 버튼 */}
+        {/* ✅ 추가 버튼 (navigate 사용) */}
         <div className="mt-12 flex gap-4 justify-center">
           <Button variant="outline" onClick={() => navigate("/home")}>홈으로 가기</Button>
           <Button variant="default" className="bg-black text-white" onClick={() => navigate("/waste-analysis")}>분석 다시 하기</Button>
@@ -120,3 +107,6 @@ const Card = ({ material, status, tag }: CardProps) => (
     </div>
   </div>
 );
+
+// ✅ `export default`는 한 번만 사용
+export default WasteAnalysisPage;
