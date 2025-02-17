@@ -169,7 +169,7 @@ function MainLayout() {
             }
           />
           <Route
-            path="/rankings"
+            path="/ranking"
             element={
               <ProtectedRoute>
                 <Ranking />
@@ -177,7 +177,7 @@ function MainLayout() {
             }
           />
           <Route
-            path="/rankings/rank_tier_guide"
+            path="/ranking/rank_tier_guide"
             element={
               <ProtectedRoute>
                 <RankTierGuide />

@@ -11,6 +11,31 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import TooltipComponent from 'react-bootstrap/Tooltip';
 
 
+// api 관련 import
+import { getRankingData, getAptRank } from "@/services/api/ranking";
+import { RankingResponse } from "@/types/RankingResponse";
+
+const RankingTest = () => {
+    useEffect(() => {
+        // API 요청 테스트
+        const fetchData = async () => {
+            const data = await getRankingData();
+            console.log("✅ API 응답 데이터:", data);
+        };
+        fetchData();
+    }, []);
+
+    return (
+        <div>
+            <h2>📡 API 테스트 중...</h2>
+            <p>콘솔을 확인해주세요.</p>
+        </div>
+    );
+};
+
+export default RankingTest;
+
+
 // 현재 로그인된 사용자 정보 (공주아파트 소속)
 const currentUserName = '김제니';
 const currentUserApartment = '공주아파트';

@@ -17,7 +17,7 @@ import {
 const MENU_ITEMS = [
   { name: "홈", path: "/home", restricted: true },
   { name: "분리배출", path: "/waste-analysis", restricted: true },
-  { name: "랭킹", path: "/rankings", restricted: true },
+  { name: "랭킹", path: "/ranking", restricted: true },
   { name: "게시판", path: "/rewards", restricted: true },
   { name: "가이드", path: "/guide", restricted: false },
   { name: "설정", path: "/settings", restricted: true },
