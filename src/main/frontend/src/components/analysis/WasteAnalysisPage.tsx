@@ -6,19 +6,24 @@ import BackgroundAnimation from "@/components/layout/BackgroudAnimation"
 
 export default function WasteAnalysisPage() {
   const navigate = useNavigate()
-  const [currentSection, setCurrentSection] = useState(0)
+  const [currentSection, setCurrentSection] = useState(0) // ✅ 현재 섹션 상태 추가
   const sectionsRef = useRef<(HTMLDivElement | null)[]>([])
 
   // 🔹 특정 섹션으로 부드럽게 스크롤
   const scrollToSection = (index: number) => {
     sectionsRef.current[index]?.scrollIntoView({ behavior: "smooth" })
-    setCurrentSection(index)
+    setCurrentSection(index)  // ✅ 현재 섹션 업데이트
   }
   
   return (
     <div className="min-h-screen bg-white overflow-hidden relative">
       {/* 백그라운드 애니메이션 추가 */}
       <BackgroundAnimation />
+
+      {/* ✅ 현재 섹션 표시 UI (왼쪽 상단) */}
+      <div className="fixed top-10 left-10 bg-black text-white px-4 py-2 rounded">
+        현재 섹션: {currentSection + 1} / 4
+      </div>
 
       <div className="relative z-50 pt-16">
         {/* ✅ 첫 번째 섹션: 메인 타이틀 */}
@@ -70,32 +75,13 @@ export default function WasteAnalysisPage() {
         {/* ✅ 네 번째 섹션: 올바른 & 잘못된 분리배출 */}
         <section className="min-w-full py-20 bg-gray-50/50">
           <div className="w-[1500px] h-[800px] mx-auto grid grid-cols-2 gap-8 text-center">
-            {/* 올바른 분리배출 */}
             <div className="p-6 bg-white/70 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold flex items-center justify-center gap-2">
-                ✅ 올바른 분리배출
-              </h3>
-              <img src="/images/correct.png" alt="올바른 분리배출" className="w-16 h-16 rounded-full mx-auto mt-4" />
+              <h3 className="text-2xl font-bold">✅ 올바른 분리배출</h3>
               <p className="italic text-gray-500 mt-4">"재활용이 쉬운 상태로 배출되었습니다."</p>
-              <div className="mt-4 bg-gray-300 w-full h-40 flex items-center justify-center text-gray-500 text-sm">
-                올바른 분리배출 사례
-              </div>
-              <p className="mt-2 text-gray-600">이것은 올바른 분리배출 사례 제목입니다.</p>
-              <a href="#" className="text-blue-500 mt-2 block">READ MORE</a>
             </div>
-
-            {/* 잘못된 분리배출 */}
             <div className="p-6 bg-white/70 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold flex items-center justify-center gap-2">
-                ❌ 잘못된 분리배출
-              </h3>
-              <img src="/images/incorrect.png" alt="잘못된 분리배출" className="w-16 h-16 rounded-full mx-auto mt-4" />
+              <h3 className="text-2xl font-bold">❌ 잘못된 분리배출</h3>
               <p className="italic text-gray-500 mt-4">"이물질이 포함되어 있습니다."</p>
-              <div className="mt-4 bg-gray-300 w-full h-40 flex items-center justify-center text-gray-500 text-sm">
-                잘못된 분리배출 사례
-              </div>
-              <p className="mt-2 text-gray-600">이것은 잘못된 분리배출 사례 제목입니다.</p>
-              <a href="#" className="text-blue-500 mt-2 block">READ MORE</a>
             </div>
           </div>
         </section>

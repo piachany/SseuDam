@@ -1,6 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { APITestPage } from './APITestPage'
+import Calendar from "react-calendar"
+import "react-calendar/dist/Calendar.css"
+
+interface Note {
+  [key: string]: string;
+}
 
 export const Administrator: React.FC = () => {
   // 상태 관리
@@ -9,7 +15,51 @@ export const Administrator: React.FC = () => {
   const [collectionPoints, setCollectionPoints] = useState<string[]>([])
   const [assignments, setAssignments] = useState<{ [key: string]: string[] }>({})
 
+  // 달력 관련 상태 추가
+  const [date, setDate] = useState<Date | null>(new Date())
+  const [notes, setNotes] = useState<Note>({})
+  const [inputValue, setInputValue] = useState("")
+
   const navigate = useNavigate()
+
+  // 컴포넌트 마운트 시 저장된 메모 불러오기
+  useEffect(() => {
+    const savedNotes = localStorage.getItem("adminNotes")
+    if (savedNotes) {
+      setNotes(JSON.parse(savedNotes))
+    }
+  }, [])
+
+  // 메모 저장 함수
+  const handleSaveNote = () => {
+    if (!date || !inputValue.trim()) return
+
+    const updatedNotes = {
+      ...notes,
+      [date.toDateString()]: inputValue
+    }
+
+    setNotes(updatedNotes)
+    localStorage.setItem("adminNotes", JSON.stringify(updatedNotes))
+    setInputValue("")
+  }
+
+  // 메모 삭제 함수
+  const handleDeleteNote = (dateKey: string) => {
+    const updatedNotes = { ...notes }
+    delete updatedNotes[dateKey]
+    
+    setNotes(updatedNotes)
+    localStorage.setItem("adminNotes", JSON.stringify(updatedNotes))
+  }
+
+  // 날짜 변경 핸들러
+  const handleDateChange = (value: Date | Date[] | null) => {
+    if (value instanceof Date) {
+      setDate(value)
+      setInputValue(notes[value.toDateString()] || "")
+    }
+  }
 
   // 데이터 저장 및 현황 페이지로 이동
   const handleFinish = () => {
@@ -18,7 +68,6 @@ export const Administrator: React.FC = () => {
       return
     }
 
-    // 데이터 저장 (로컬 스토리지 또는 상태 전달)
     const data = {
       apartmentName,
       buildings,
@@ -26,8 +75,8 @@ export const Administrator: React.FC = () => {
       assignments
     }
 
-    localStorage.setItem('apartmentData', JSON.stringify(data))  // 로컬 스토리지 저장
-    navigate('/admin/status', { state: data })  // 현황 페이지로 이동
+    localStorage.setItem('apartmentData', JSON.stringify(data))
+    navigate('/admin/status', { state: data })
   }
 
   return (
@@ -46,26 +95,78 @@ export const Administrator: React.FC = () => {
 
         {/* 동별 수거장 할당 */}
         <AssignmentForm 
-          apartmentName={apartmentName}  // ✅ 아파트 이름 전달
+          apartmentName={apartmentName}
           buildings={buildings} 
           collectionPoints={collectionPoints} 
           assignments={assignments} 
           setAssignments={setAssignments} 
         />
+
+        {/* 달력 섹션 추가 */}
+        <div className="md:col-span-2 bg-white shadow-md p-6 rounded-lg">
+          <h2 className="text-2xl font-bold mb-4 text-gray-700">일정 관리</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <Calendar 
+                onChange={handleDateChange} 
+                value={date} 
+                className="w-full rounded-lg shadow-md"
+              />
+            </div>
+
+            <div>
+              <div className="mb-4">
+                <input 
+                  type="text" 
+                  placeholder="메모를 입력하세요..." 
+                  value={inputValue} 
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSaveNote()}
+                  className="w-full p-2 border rounded-lg"
+                />
+                <button
+                  onClick={handleSaveNote}
+                  className="w-full mt-2 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+                  disabled={!inputValue.trim()}
+                >
+                  메모 저장
+                </button>
+              </div>
+
+              {Object.keys(notes).length > 0 && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-2">📌 저장된 메모</h3>
+                  <div className="max-h-60 overflow-y-auto">
+                    {Object.entries(notes)
+                      .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
+                      .map(([dateKey, note]) => (
+                        <div key={dateKey} className="p-2 border-b flex justify-between items-center">
+                          <div>
+                            <strong>{dateKey}:</strong> {note}
+                          </div>
+                          <button
+                            onClick={() => handleDeleteNote(dateKey)}
+                            className="text-red-500 hover:text-red-700 ml-2"
+                          >
+                            ❌
+                          </button>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
-       {/* ✅ API 테스트 실행 버튼 & 결과 */}
-       <div className="mt-10">
+      {/* API 테스트 섹션 */}
+      <div className="mt-10">
         <h2 className="text-2xl font-bold text-center text-blue-600 mb-4">API 테스트</h2>
-        <APITestPage /> {/* ✅ API 테스트 페이지 추가 */}
+        <APITestPage />
       </div>
 
-      <button
-        onClick={handleFinish}
-        className="w-full mt-8 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600"
-      >
-        </button>
-        
       {/* 저장 및 현황 보기 버튼 */}
       <button
         onClick={handleFinish}
@@ -77,25 +178,26 @@ export const Administrator: React.FC = () => {
   )
 }
 
-// ✅ 1. 아파트 이름 입력 폼 (버튼 추가!)
-const ApartmentForm: React.FC<{ apartmentName: string; setApartmentName: (name: string) => void }> = ({ apartmentName, setApartmentName }) => {
-  const [inputValue, setInputValue] = useState('')  // 입력 필드 상태 관리
+// 1. 아파트 이름 입력 폼
+const ApartmentForm: React.FC<{ 
+  apartmentName: string; 
+  setApartmentName: (name: string) => void 
+}> = ({ apartmentName, setApartmentName }) => {
+  const [inputValue, setInputValue] = useState('')
 
-  // 아파트 이름 추가 함수
   const handleAddApartment = () => {
     if (inputValue.trim() === '') {
       alert('아파트 이름을 입력하세요.')
       return
     }
-    setApartmentName(inputValue)  // 상태에 아파트 이름 저장
-    setInputValue('')             // 입력 필드 초기화
+    setApartmentName(inputValue)
+    setInputValue('')
   }
 
   return (
     <div className="bg-white shadow-md p-6 rounded-lg">
       <h2 className="text-2xl font-bold mb-4 text-gray-700">1. 아파트 이름 입력</h2>
       
-      {/* 입력 필드 */}
       <input
         type="text"
         value={inputValue}
@@ -104,7 +206,6 @@ const ApartmentForm: React.FC<{ apartmentName: string; setApartmentName: (name: 
         className="border p-2 w-full rounded-lg mb-4"
       />
 
-      {/* ✅ 추가 버튼 */}
       <button
         onClick={handleAddApartment}
         className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
@@ -112,7 +213,6 @@ const ApartmentForm: React.FC<{ apartmentName: string; setApartmentName: (name: 
         아파트 추가
       </button>
 
-      {/* ✅ 추가된 아파트 이름 표시 */}
       {apartmentName && (
         <div className="mt-4 p-2 bg-green-100 text-green-700 rounded-lg">
           추가된 아파트: <strong>{apartmentName}</strong>
@@ -122,8 +222,11 @@ const ApartmentForm: React.FC<{ apartmentName: string; setApartmentName: (name: 
   )
 }
 
-// ✅ 2. 아파트 동 입력 폼
-const BuildingForm: React.FC<{ buildings: string[]; setBuildings: (buildings: string[]) => void }> = ({ buildings, setBuildings }) => {
+// 2. 아파트 동 입력 폼
+const BuildingForm: React.FC<{ 
+  buildings: string[]; 
+  setBuildings: (buildings: string[]) => void 
+}> = ({ buildings, setBuildings }) => {
   const [newBuilding, setNewBuilding] = useState('')
 
   const addBuilding = () => {
@@ -143,7 +246,12 @@ const BuildingForm: React.FC<{ buildings: string[]; setBuildings: (buildings: st
         placeholder="동 번호 입력 (예: 101동)"
         className="border p-2 w-full rounded-lg mb-4"
       />
-      <button onClick={addBuilding} className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">동 추가</button>
+      <button 
+        onClick={addBuilding} 
+        className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+      >
+        동 추가
+      </button>
 
       <div className="mt-4">
         {buildings.map((building, index) => (
@@ -154,8 +262,11 @@ const BuildingForm: React.FC<{ buildings: string[]; setBuildings: (buildings: st
   )
 }
 
-// ✅ 3. 수거장 구역 입력 폼
-const CollectionPointForm: React.FC<{ collectionPoints: string[]; setCollectionPoints: (points: string[]) => void }> = ({ collectionPoints, setCollectionPoints }) => {
+// 3. 수거장 구역 입력 폼
+const CollectionPointForm: React.FC<{ 
+  collectionPoints: string[]; 
+  setCollectionPoints: (points: string[]) => void 
+}> = ({ collectionPoints, setCollectionPoints }) => {
   const [newPoint, setNewPoint] = useState('')
 
   const addCollectionPoint = () => {
@@ -175,7 +286,12 @@ const CollectionPointForm: React.FC<{ collectionPoints: string[]; setCollectionP
         placeholder="수거장 이름 입력 (예: A구역)"
         className="border p-2 w-full rounded-lg mb-4"
       />
-      <button onClick={addCollectionPoint} className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">수거장 추가</button>
+      <button 
+        onClick={addCollectionPoint} 
+        className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+      >
+        수거장 추가
+      </button>
 
       <div className="mt-4">
         {collectionPoints.map((point, index) => (
@@ -186,9 +302,9 @@ const CollectionPointForm: React.FC<{ collectionPoints: string[]; setCollectionP
   )
 }
 
-// ✅ 4. 동별 수거장 할당 폼 (아파트 이름 추가)
+// 4. 동별 수거장 할당 폼
 const AssignmentForm: React.FC<{ 
-  apartmentName: string              // ✅ 아파트 이름 받기
+  apartmentName: string
   buildings: string[]
   collectionPoints: string[]
   assignments: { [key: string]: string[] }
@@ -212,7 +328,6 @@ const AssignmentForm: React.FC<{
 
       {collectionPoints.map((point, idx) => (
         <div key={idx} className="mb-4">
-          {/* ✅ 아파트 이름과 수거장 이름 표시 */}
           <h3 className="font-semibold text-lg text-green-600">
             {apartmentName} - {point}
           </h3>
@@ -225,7 +340,6 @@ const AssignmentForm: React.FC<{
                 onChange={() => toggleAssignment(building, point)}
                 className="mr-2"
               />
-              {/* ✅ 아파트 이름 + 동 표시 */}
               {apartmentName} - {building}
             </label>
           ))}

@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "framer-motion";
 import "./BackgroundAnimation.css";
 
@@ -12,7 +11,7 @@ const BackgroundAnimation = () => {
       className="background-container fixed top-0 left-0 w-full h-full pointer-events-none z-0"
       style={{ 
         background: 'linear-gradient(to bottom, rgba(168, 230, 207, 0.5), rgba(220, 237, 193, 0.5))',
-        backdropFilter: 'blur(2px)' 
+        backdropFilter: 'blur(2px)'
       }}
     >
       {/* ☁️ 구름 애니메이션 */}
