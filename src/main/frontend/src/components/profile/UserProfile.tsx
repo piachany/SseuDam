@@ -5,32 +5,44 @@ import { Dialog, DialogContent, DialogTrigger } from "@radix-ui/react-dialog";
 import * as LucideIcons from "lucide-react";
 import { ComponentType } from "react";
 
-// ✅ Props 타입 정의
 interface UserProfileProps {
   userData: {
-    username?: string;
+    nickname?: string;  // username을 nickname으로 변경
     email?: string;
     lastLogin?: string;
     createdAt?: string;
   };
 }
 
-// ✅ Firestore 데이터 타입
 interface UserData {
-  username?: string;
+  nickname?: string;  // username을 nickname으로 변경
   email?: string;
   selectedIcon?: string;
   currentRank?: string;
   points?: number;
   nextRankPoints?: number;
-  totalPoints?: number; // ✅ 누적 포인트
-  monthlyPoints?: number; // ✅ 월별 포인트
-  earnedPoints?: number; // ✅ 획득 포인트
+  totalPoints?: number;
+  monthlyPoints?: number;
+  earnedPoints?: number;
+  lastLogin?: string;
+  createdAt?: string;
 }
 
 const availableIcons = Object.keys(LucideIcons)
   .filter((icon) => typeof (LucideIcons as any)[icon] === "function")
   .slice(0, 20) as Array<keyof typeof LucideIcons>;
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return "정보 없음";
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+};
 
 export function UserProfile({ userData: initialUserData }: UserProfileProps) {
   const [user, setUser] = useState<UserData | null>(null);
@@ -109,14 +121,11 @@ export function UserProfile({ userData: initialUserData }: UserProfileProps) {
   return (
     <div className="bg-green-100 min-h-screen flex flex-col items-center justify-center p-6">
       <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-lg text-center border border-green-300 shadow-green-400">
-        
-        {/* ✅ 친환경 분리배출 안내 문구 */}
         <div className="text-center text-green-700 bg-green-200 p-4 rounded-md mb-6">
           <p className="font-semibold text-lg">♻️ 환경을 위한 친환경 분리배출을 시작하세요!</p>
           <p className="text-sm">지속 가능한 지구를 위한 작은 실천이 큰 변화를 만듭니다.</p>
         </div>
 
-        {/* ✅ 사용자 프로필 (아이콘 선택 가능) */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <div className="relative w-24 h-24 mx-auto cursor-pointer bg-green-200 flex items-center justify-center rounded-full border-2 border-green-400 shadow-md hover:bg-green-300 transition-all">
@@ -126,7 +135,7 @@ export function UserProfile({ userData: initialUserData }: UserProfileProps) {
                   return <IconComponent size={48} className="text-green-800" />;
                 })()
               ) : (
-                <span className="text-green-800 text-5xl">{(user.username || "U")[0].toUpperCase()}</span>
+                <span className="text-green-800 text-5xl">{(user.nickname || "U")[0].toUpperCase()}</span>
               )}
             </div>
           </DialogTrigger>
@@ -149,10 +158,14 @@ export function UserProfile({ userData: initialUserData }: UserProfileProps) {
           </DialogContent>
         </Dialog>
 
-        <h2 className="text-2xl font-bold mt-4 text-green-900">{user.username || "사용자"}</h2>
+        <h2 className="text-2xl font-bold mt-4 text-green-900">{user.nickname || "사용자"}</h2>
         <p className="text-green-700">{user.email}</p>
 
-        {/* ✅ 등급 및 포인트 정보 */}
+        <div className="mt-4 space-y-2 text-sm text-green-600">
+          <p>가입일: {formatDate(initialUserData.createdAt)}</p>
+          <p>마지막 로그인: {formatDate(initialUserData.lastLogin)}</p>
+        </div>
+
         <div className="grid grid-cols-2 gap-4 mt-6 text-center">
           <div className="bg-green-50 p-3 rounded-lg shadow-sm border border-green-200">
             <p className="text-sm text-green-700">현재 등급</p>
@@ -164,7 +177,6 @@ export function UserProfile({ userData: initialUserData }: UserProfileProps) {
           </div>
         </div>
 
-        {/* ✅ 포인트 정보 */}
         <div className="grid grid-cols-3 gap-4 mt-6 text-center">
           <div className="bg-green-50 p-3 rounded-lg shadow-sm border border-green-200">
             <p className="text-sm text-green-700">누적 포인트</p>
