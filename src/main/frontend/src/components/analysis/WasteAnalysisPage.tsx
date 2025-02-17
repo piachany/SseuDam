@@ -76,13 +76,12 @@ export default function WasteAnalysisPage() {
                 ✅ 올바른 분리배출
               </h3>
               <img src="/images/correct.png" alt="올바른 분리배출" className="w-16 h-16 rounded-full mx-auto mt-4" />
-              <p className="italic text-gray-500 mt-4">"재활용이 쉬운 상태로 배출되었습니다."</p>
+              <p className="italic text-gray-500 mt-4">"XX% 올바른 배출을 하였어요!"</p>
               <div className="mt-4 bg-gray-300 w-full h-40 flex items-center justify-center text-gray-500 text-sm">
                 올바른 분리배출 사례
               </div>
-              <p className="mt-2 text-gray-600">이것은 올바른 분리배출 사례 제목입니다.</p>
-              <a href="#" className="text-blue-500 mt-2 block">READ MORE</a>
-            </div>
+              <p className="mt-2 text-gray-600">총 차감 포인트 : XXX</p>
+                 </div>
 
             {/* 잘못된 분리배출 */}
             <div className="p-6 bg-white/70 rounded-lg shadow-md">
@@ -90,12 +89,11 @@ export default function WasteAnalysisPage() {
                 ❌ 잘못된 분리배출
               </h3>
               <img src="/images/incorrect.png" alt="잘못된 분리배출" className="w-16 h-16 rounded-full mx-auto mt-4" />
-              <p className="italic text-gray-500 mt-4">"이물질이 포함되어 있습니다."</p>
+              <p className="italic text-gray-500 mt-4">"XX% "</p>
               <div className="mt-4 bg-gray-300 w-full h-40 flex items-center justify-center text-gray-500 text-sm">
                 잘못된 분리배출 사례
               </div>
-              <p className="mt-2 text-gray-600">이것은 잘못된 분리배출 사례 제목입니다.</p>
-              <a href="#" className="text-blue-500 mt-2 block">READ MORE</a>
+              <p className="mt-2 text-gray-600">총 흭득 포인트 : XXX</p>
             </div>
           </div>
         </section>

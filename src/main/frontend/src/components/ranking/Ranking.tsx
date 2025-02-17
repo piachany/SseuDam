@@ -175,9 +175,9 @@ const UserCard = ({
             <div className="absolute top-0 right-0 h-full border-l-4 border-black"></div>
           </div>
           <p className="text-gray-600 text-sm whitespace-nowrap">
-            이번달 Eco XP🌱: {monthlyPoints} / 10000
+            이번달 에코 포인트🌱: {monthlyPoints} / 10000
           </p>
-          <p className="text-gray-600 text-sm">총 Eco XP🌳: {accumulatedPoints}</p>
+          <p className="text-gray-600 text-sm">누적 에코 포인트🌳: {accumulatedPoints}</p>
         </div>
         <div className="flex flex-col justify-center items-center text-4xl font-bold text-black pl-4 w-44">
           {rank}
@@ -209,7 +209,7 @@ const EcoProgressBar = ({ totalXP, monthlyPoints }: { totalXP: number; monthlyPo
           style={{ left: `${progressPercentage}%`, transform: 'translateX(-50%)' }}
         >
           <div className="bg-black text-white text-xs px-3 py-1 rounded-full shadow-md whitespace-nowrap flex items-center gap-1">
-            🌱 {remainingPoints} Eco XP 남음!
+            🌱 {remainingPoints} 에코 포인트 남음!
             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-black rotate-45"></div>
           </div>
         </div>
@@ -377,8 +377,8 @@ export function Ranking() {
                         <FaCrown className={`mb-2 text-3xl ${medalColors.silver.crown}`} />
                         <h2 className="text-xl font-bold">{silverUser.nickname}</h2>
                         <p className="text-sm">{calculateGrade(silverUser.accumulatedPoints)}</p>
-                        <p className="text-xs">이번달 Eco XP: {silverUser.monthlyPoints}</p>
-                        <p className="text-xs">총 Eco XP: {silverUser.accumulatedPoints}</p>
+                        <p className="text-xs">이번달 에코 포인트🌱 {silverUser.monthlyPoints}</p>
+                        <p className="text-xs">누적 에코 포인트🌳: {silverUser.accumulatedPoints}</p>
                       </div>
                     </div>
                   </div>
@@ -399,8 +399,8 @@ export function Ranking() {
                         <FaCrown className={`mb-2 text-4xl ${medalColors.gold.crown}`} />
                         <h2 className="text-2xl font-bold">{goldUser.nickname}</h2>
                         <p className="text-lg">{calculateGrade(goldUser.accumulatedPoints)}</p>
-                        <p className="text-md">이번달 Eco XP: {goldUser.monthlyPoints}</p>
-                        <p className="text-md">총 Eco XP: {goldUser.accumulatedPoints}</p>
+                        <p className="text-md">이번달 에코 포인트🌱 : {goldUser.monthlyPoints}</p>
+                        <p className="text-md">누적 에코 포인트🌳 : {goldUser.accumulatedPoints}</p>
                       </div>
                     </div>
                   </div>
@@ -421,8 +421,8 @@ export function Ranking() {
                         <FaCrown className={`mb-2 text-3xl ${medalColors.bronze.crown}`} />
                         <h2 className="text-xl font-bold">{bronzeUser.nickname}</h2>
                         <p className="text-sm">{calculateGrade(bronzeUser.accumulatedPoints)}</p>
-                        <p className="text-xs">이번달 Eco XP: {bronzeUser.monthlyPoints}</p>
-                        <p className="text-xs">총 Eco XP: {bronzeUser.accumulatedPoints}</p>
+                        <p className="text-xs">이번달 에코 포인트🌱 : {bronzeUser.monthlyPoints}</p>
+                        <p className="text-xs">누적 에코 포인트🌳 : {bronzeUser.accumulatedPoints}</p>
                       </div>
                     </div>
                   </div>
@@ -449,8 +449,8 @@ export function Ranking() {
                       <FaCrown className={`mb-2 text-3xl ${medal.crown}`} />
                       <h2 className="text-xl font-bold">{user.nickname}</h2>
                       <p className="text-sm">{calculateGrade(user.accumulatedPoints)}</p>
-                      <p className="text-xs">이번달 Eco XP: {user.monthlyPoints}</p>
-                      <p className="text-xs">총 Eco XP: {user.accumulatedPoints}</p>
+                      <p className="text-xs">이번달 에코 포인트🌱 : {user.monthlyPoints}</p>
+                      <p className="text-xs">누적 에코 포인트🌳 : {user.accumulatedPoints}</p>
                     </div>
                   </div>
                   <div className="mt-2 font-bold text-sm">{user.ranking}위</div>
@@ -516,8 +516,8 @@ export function Ranking() {
                     <div className="w-full bg-gray-200 h-4 rounded mt-2 mb-1">
                       <div className="bg-green-400 h-4 rounded" style={{ width: `${(user.monthlyPoints / 10000) * 100}%` }}></div>
                     </div>
-                    <p className="text-gray-600 text-sm">이번달 Eco XP🌱: {user.monthlyPoints} / 10000</p>
-                    <p className="text-gray-600 text-sm">총 Eco XP🌳: {user.accumulatedPoints}</p>
+                    <p className="text-gray-600 text-sm">이번달 에코 포인트🌱: {user.monthlyPoints} / 10000</p>
+                    <p className="text-gray-600 text-sm">누적 에코 포인트🌳: {user.accumulatedPoints}</p>
                   </div>
                 </Card>
               );

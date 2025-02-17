@@ -23,23 +23,6 @@ export function LoginPage() {
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // ✅ Bypass 로그인 (개발용)
-    const bypassLogin = () => {
-        const bypassUserData: User = {
-          uid: 'bypass-user',
-          email: 'bypass@example.com',
-          nickname: 'Bypass User',
-          createdAt: new Date().toISOString(),
-          lastLogin: new Date().toISOString(),
-          monthly_points: 0, // or any default value
-          isGuest: false,
-          role: 'user',
-        };
-      setUser(bypassUserData);
-      navigate("/home");
-    };
-
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -76,7 +59,6 @@ export function LoginPage() {
         nickname: response.nickname,
         createdAt: response.createdAt,
         lastLogin: response.lastLogin,
-        monthly_points: response.monthly_points,
         isGuest: false,
         role: "user"
       };
@@ -120,15 +102,6 @@ export function LoginPage() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-
-         {/* Bypass 로그인 버튼 */}
-        <Button
-          type="button"
-          onClick={bypassLogin}
-          className="w-full h-10 mb-4 bg-green-500 text-white hover:bg-green-600" // 다른 버튼과 구분되는 색상
-          >
-            Bypass Login (개발용)
-        </Button>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
