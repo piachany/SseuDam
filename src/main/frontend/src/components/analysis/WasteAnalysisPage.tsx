@@ -1,20 +1,20 @@
-import { useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { motion } from "framer-motion"
-import BackgroundAnimation from "@/components/layout/BackgroudAnimation"
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import BackgroundAnimation from "@/components/layout/BackgroudAnimation";
 
 export default function WasteAnalysisPage() {
-  const navigate = useNavigate()
-  const [currentSection, setCurrentSection] = useState(0) // ✅ 현재 섹션 상태 추가
-  const sectionsRef = useRef<(HTMLDivElement | null)[]>([])
+  const navigate = useNavigate();
+  const [currentSection, setCurrentSection] = useState(0);
+  const sectionsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   // 🔹 특정 섹션으로 부드럽게 스크롤
   const scrollToSection = (index: number) => {
-    sectionsRef.current[index]?.scrollIntoView({ behavior: "smooth" })
-    setCurrentSection(index)  // ✅ 현재 섹션 업데이트
-  }
-  
+    sectionsRef.current[index]?.scrollIntoView({ behavior: "smooth" });
+    setCurrentSection(index);
+  };
+
   return (
     <div className="min-h-screen bg-white overflow-hidden relative">
       {/* 백그라운드 애니메이션 추가 */}
@@ -27,9 +27,9 @@ export default function WasteAnalysisPage() {
 
       <div className="relative z-50 pt-16">
         {/* ✅ 첫 번째 섹션: 메인 타이틀 */}
-        <section ref={(el) => (sectionsRef.current[0] = el as HTMLDivElement | null)} className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-gray-100/50">
+        <section ref={(el) => (sectionsRef.current[0] = el)} className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-gray-100/50">
           <motion.h1 initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} className="text-6xl font-extrabold">
-            <span className="text-blue-600">"지구</span>를 위한 한걸음"  
+            <span className="text-blue-600">"지구</span>를 위한 한걸음"
           </motion.h1>
           <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 1 }} className="text-2xl text-green-600 font-semibold mt-2">
             오늘도 리워드!
@@ -41,8 +41,8 @@ export default function WasteAnalysisPage() {
           </motion.div>
         </section>
 
-        {/* ✅ 두 번째 섹션: 로고 (로딩) */}
-        <section ref={(el) => (sectionsRef.current[1] = el as HTMLDivElement | null)} className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50">
+        {/* ✅ 두 번째 섹션: 로딩 화면 */}
+        <section ref={(el) => (sectionsRef.current[1] = el)} className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1, y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-lg mb-4">
             로딩 중...
           </motion.div>
@@ -59,16 +59,13 @@ export default function WasteAnalysisPage() {
         </section>
 
         {/* ✅ 세 번째 섹션: AI 분석 결과 */}
-        <section ref={(el) => (sectionsRef.current[2] = el as HTMLDivElement | null)} className="min-w-full py-20 flex flex-col items-center justify-center text-center bg-white/50">
+        <section ref={(el) => (sectionsRef.current[2] = el)} className="min-w-full py-20 flex flex-col items-center justify-center text-center bg-white/50">
           <h2 className="text-4xl font-bold">AI 분석 결과</h2>
           <p className="text-gray-500">재질 및 상태 분류 결과를 확인하세요</p>
 
           {/* 카드 리스트 */}
           <div className="mt-8 grid grid-cols-3 gap-6 justify-items-center">
-            {cardData.slice(0, 3).map((item, index) => <Card key={index} {...item} />)}
-          </div>
-          <div className="mt-6 grid grid-cols-3 gap-6 justify-items-center">
-            {cardData.slice(3, 6).map((item, index) => <Card key={index} {...item} />)}
+            {cardData.map((item, index) => <Card key={index} {...item} />)}
           </div>
         </section>
 
@@ -93,14 +90,14 @@ export default function WasteAnalysisPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // 🔹 카드 UI 컴포넌트
 interface CardProps {
-  material: string
-  status: string
-  tag: string
+  material: string;
+  status: string;
+  tag: string;
 }
 
 const cardData: CardProps[] = [
@@ -110,7 +107,7 @@ const cardData: CardProps[] = [
   { material: "유리", status: "깨끗함", tag: "이물질 없음" },
   { material: "비닐", status: "일부 오염", tag: "이물질 있음" },
   { material: "철", status: "깨끗함", tag: "이물질 없음" }
-]
+];
 
 const Card = ({ material, status, tag }: CardProps) => (
   <div className="w-72 bg-white/70 shadow-md rounded-lg overflow-hidden">
@@ -122,4 +119,4 @@ const Card = ({ material, status, tag }: CardProps) => (
       <p className="text-gray-500">{status}</p>
     </div>
   </div>
-)
+);
