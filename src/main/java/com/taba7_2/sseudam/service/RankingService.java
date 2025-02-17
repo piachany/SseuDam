@@ -1,69 +1,66 @@
 package com.taba7_2.sseudam.service;
 
-import com.taba7_2.sseudam.dto.RankingDto;
-import com.taba7_2.sseudam.dto.RankingResponseDto;
 import com.taba7_2.sseudam.model.RankAccount;
+import com.taba7_2.sseudam.repository.MonthlyPointsRepository;
 import com.taba7_2.sseudam.repository.RankAccountRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
 
 @Service
 public class RankingService {
-
     private final RankAccountRepository rankAccountRepository;
-    private final FirebaseAuthService firebaseAuthService;
+    private final MonthlyPointsRepository monthlyPointsRepository;
 
-    public RankingService(RankAccountRepository rankAccountRepository, FirebaseAuthService firebaseAuthService) {
+    public RankingService(RankAccountRepository rankAccountRepository, MonthlyPointsRepository monthlyPointsRepository) {
         this.rankAccountRepository = rankAccountRepository;
-        this.firebaseAuthService = firebaseAuthService;
+        this.monthlyPointsRepository = monthlyPointsRepository;
     }
 
-    /**
-     * ✅ 특정 아파트의 사용자 중심 랭킹 조회 (월별)
-     */
-    public RankingResponseDto getRankingsForUser(String authorizationHeader, int month, Long apartmentId) {
-        String uid = firebaseAuthService.getUidFromToken(authorizationHeader);
+    public Optional<RankAccount> getUserRanking(String userUid) {
+        return rankAccountRepository.findByUid(userUid);
+    }
 
-        // ✅ apartment_id가 제공되었으면 해당 아파트의 사용자만 필터링
-        List<RankAccount> filteredRankings = (apartmentId != null) ?
-                rankAccountRepository.findByMonthAndApartmentIdOrderByMonthlyPointsDesc(month, apartmentId) :
-                rankAccountRepository.findByMonthOrderByMonthlyPointsDesc(month);
+    public List<Map<String, Object>> getTop3Rankings(int month) {
+        return rankAccountRepository.findTop3ByMonth(month).stream().map(this::mapRankingData).toList();
+    }
 
-        Optional<RankAccount> userRankOptional = filteredRankings.stream()
-                .filter(rank -> rank.getUid().equals(uid))
-                .findFirst();
+    public List<Map<String, Object>> getApartmentRankings(Long apartmentId, int month) {
+        return rankAccountRepository.findByApartmentIdAndMonth(apartmentId, month).stream().map(this::mapRankingData).toList();
+    }
 
-        if (userRankOptional.isEmpty()) {
-            return new RankingResponseDto(null, null, null, filteredRankings.stream().map(this::convertToRankingDto).collect(Collectors.toList()));
+    public List<Map<String, Object>> getMonthlyPoints(String userUid) {
+        return monthlyPointsRepository.findMonthlyPointsByUser(userUid).stream().map(this::mapMonthlyPointsData).toList();
+    }
+
+    public Map<String, Object> getAboveUser(Long apartmentId, int month, String userUid) {
+        List<Map<String, Object>> rankings = getApartmentRankings(apartmentId, month);
+        int index = findUserIndex(rankings, userUid);
+        return (index > 0) ? rankings.get(index - 1) : null;
+    }
+
+    public Map<String, Object> getBelowUser(Long apartmentId, int month, String userUid) {
+        List<Map<String, Object>> rankings = getApartmentRankings(apartmentId, month);
+        int index = findUserIndex(rankings, userUid);
+        return (index < rankings.size() - 1) ? rankings.get(index + 1) : null;
+    }
+
+    private int findUserIndex(List<Map<String, Object>> rankings, String userUid) {
+        for (int i = 0; i < rankings.size(); i++) {
+            if (rankings.get(i).get("uid").equals(userUid)) {
+                return i;
+            }
         }
-
-        RankAccount userRank = userRankOptional.get();
-        int userIndex = filteredRankings.indexOf(userRank);
-
-        RankAccount aboveUser = (userIndex > 0) ? filteredRankings.get(userIndex - 1) : null;
-        RankAccount belowUser = (userIndex < filteredRankings.size() - 1) ? filteredRankings.get(userIndex + 1) : null;
-
-        return new RankingResponseDto(
-                convertToRankingDto(userRank),
-                (aboveUser != null) ? convertToRankingDto(aboveUser) : null,
-                (belowUser != null) ? convertToRankingDto(belowUser) : null,
-                filteredRankings.stream().map(this::convertToRankingDto).collect(Collectors.toList())
-        );
+        return -1;
     }
 
-    /**
-     * ✅ `RankAccount` 엔터티를 `RankingDto`로 변환
-     */
-    private RankingDto convertToRankingDto(RankAccount rankAccount) {
-        return new RankingDto(
-                rankAccount.getUid(),
-                rankAccount.getNickname(),
-                rankAccount.getMonthlyPoints(),
-                rankAccount.getAccumulatedPoints(),
-                rankAccount.getRanking(),
-                rankAccount.getTier()
-        );
+    private Map<String, Object> mapRankingData(Object[] data) {
+        return Map.of("uid", data[0], "nickname", data[1], "apartmentId", data[2], "month", data[3], "monthlyPoints", data[4], "accumulatedPoints", data[5], "ranking", data[6]);
+    }
+
+    private Map<String, Object> mapMonthlyPointsData(Object[] data) {
+        return Map.of("month", data[0], "totalPoints", data[1]);
     }
 }

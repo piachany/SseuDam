@@ -37,13 +37,15 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
-        set({ user: JSON.parse(storedUser) });
+        const parsedUser = JSON.parse(storedUser);
+        set({ user: parsedUser });
       }
-    } catch (e) {
-      console.error("Invalid JSON in localStorage:", e);
-      localStorage.removeItem("user");
+    } catch (error) {
+      console.error("Failed to parse user data from localStorage:", error);
+      localStorage.removeItem("user"); // 잘못된 데이터 제거
     }
   },
 }));
 
+// ✅ 애플리케이션이 실행될 때 자동으로 상태 복원
 useAuthStore.getState().syncUser();

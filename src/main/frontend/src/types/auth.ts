@@ -25,4 +25,5 @@ export interface LoginRequest {
     lastLogin: string;
     isGuest: boolean;
     role: string;
+    monthly_points?: number;
   }
