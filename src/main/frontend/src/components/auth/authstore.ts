@@ -2,7 +2,6 @@
 import create from "zustand";
 import { User } from "@/types/auth"; // ✅ 정확한 User 타입 import
 
-
 interface AuthState {
     user: User | null;
     setUser: (user: User | null) => void;  // user 또는 null

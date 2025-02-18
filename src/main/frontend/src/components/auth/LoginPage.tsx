@@ -14,11 +14,27 @@ import { doc, getDoc, getFirestore } from "firebase/firestore";
 interface LoginError extends Error {
   message: string;
 }
+    
+// Admin 사용자를 위한 확장된 인터페이스
+interface AdminUserData extends User {
+  uid: string;
+  email: string;
+  nickname: string;
+  created_at: string;
+  last_login: string;
+  monthly_points: number;
+  isGuest: false;
+  role: "admin";
+  token: string;
+  points_needed_for_promotion: number;
+  grade: string;
+  accumulatedPoints: number;
+  monthlyPoints: number;
+}
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { setUser } = useAuthStore();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string>("");
@@ -27,15 +43,20 @@ export function LoginPage() {
   // ✅ Bypass 로그인 (개발용)
   const bypassLogin = () => {
     const bypassUserData: User = {
-      uid: 'bypass-user',
-      email: 'bypass@example.com',
-      nickname: 'Bypass User',
-      createdAt: new Date().toISOString(),
-      lastLogin: new Date().toISOString(),
-      monthly_points: 0,
-      isGuest: false,
-      role: 'user',
-      token: 'bypass-token' // token 추가
+        uid: 'bypass-user',
+        email: 'bypass@example.com',
+        nickname: 'Bypass User',
+        created_at: new Date().toISOString(),
+        last_login: new Date().toISOString(),
+        monthlyPoints: 0,
+        isGuest: false,
+        role: 'user',
+        token: 'bypass-token',
+        points_needed_for_promotion: 0,
+        grade: "일반",
+        accumulatedPoints: 0,
+        redirect_url: "/home",
+        pointsNeededForPromotion: 0
     };
     setUser(bypassUserData);
     navigate("/home");
@@ -66,26 +87,29 @@ export function LoginPage() {
       const userDocRef = doc(db, "users", firebaseUser.uid);
       const userDocSnapshot = await getDoc(userDocRef);
 
-      let userData: User;
-
       if (userDocSnapshot.exists()) {
         const userDataFromFirestore = userDocSnapshot.data();
 
         if (userDataFromFirestore.role === "admin") {
-          userData = {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email || "",
-            nickname: userDataFromFirestore.nickname,
-            createdAt: userDataFromFirestore.createdAt,
-            lastLogin: userDataFromFirestore.lastLogin,
-            monthly_points: userDataFromFirestore.monthly_points || 0,
-            isGuest: false,
-            role: "admin",
-            token: idToken
+          const adminUserData: AdminUserData = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || "",
+              nickname: userDataFromFirestore.nickname,
+              created_at: userDataFromFirestore.createdAt,
+              last_login: userDataFromFirestore.lastLogin,
+              monthly_points: userDataFromFirestore.monthly_points || 0,
+              points_needed_for_promotion: 0,
+              grade: "관리자",
+              accumulatedPoints: 0,
+              monthlyPoints: 0,
+              isGuest: false,
+              role: "admin",
+              token: idToken,
+              pointsNeededForPromotion: 0
           };
 
-          setUser(userData);
-          localStorage.setItem("user", JSON.stringify(userData));
+          setUser(adminUserData);
+          localStorage.setItem("user", JSON.stringify(adminUserData));
           localStorage.setItem("isAdmin", "true");
           navigate("/admin");
           return;
@@ -95,22 +119,26 @@ export function LoginPage() {
       // ✅ 백엔드 로그인 요청 (Firebase 토큰 포함)
       const response = await login({ email, password });
 
-      userData = {
-        uid: response.uid,
-        email: response.email,
-        nickname: response.nickname,
-        createdAt: response.createdAt,
-        lastLogin: response.lastLogin,
-        monthly_points: response.monthly_points,
-        isGuest: false,
-        role: "user",
-        token: idToken
+      const userData: User = {
+          uid: response.uid,
+          email: response.email,
+          nickname: response.nickname,
+          created_at: response.created_at,
+          last_login: response.last_login,
+          monthlyPoints: response.monthlyPoints,
+          points_needed_for_promotion: response.points_needed_for_promotion,
+          grade: response.grade,
+          accumulatedPoints: response.accumulatedPoints,
+          isGuest: false,
+          role: response.role,
+          token: idToken,
+          pointsNeededForPromotion: 0
       };
 
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
       localStorage.setItem("isAdmin", "false");
-      navigate("/home");
+      navigate(response.redirect_url || "/home");
     } catch (error) {
       console.error("🚨 로그인 에러:", error);
       const loginError = error as LoginError;
@@ -123,14 +151,20 @@ export function LoginPage() {
   const handleGuestLogin = () => {
     const currentTime = new Date().toISOString();
     const guestData: User = {
-      uid: `guest-${Date.now()}`,
-      email: "",
-      nickname: "게스트",
-      createdAt: currentTime,
-      lastLogin: currentTime,
-      isGuest: true,
-      role: "user",
-      token: `guest-${Date.now()}` // token 추가
+        uid: `guest-${Date.now()}`,
+        email: "",
+        nickname: "게스트",
+        created_at: currentTime,
+        last_login: currentTime,
+        isGuest: true,
+        role: "user",
+        token: `guest-${Date.now()}`,
+        monthlyPoints: 0,
+        points_needed_for_promotion: 0,
+        grade: "일반",
+        accumulatedPoints: 0,
+        redirect_url: "/home",
+        pointsNeededForPromotion: 0
     };
     setUser(guestData);
     navigate("/home");

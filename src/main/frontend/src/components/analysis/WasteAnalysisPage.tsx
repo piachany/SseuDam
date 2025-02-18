@@ -4,11 +4,15 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import BackgroundAnimation from "@/components/layout/BackgroudAnimation";
 
+// Define section ref type
+type SectionRefs = Array<HTMLDivElement | null>;
+
 // 🌟 WasteAnalysisPage Component
 export default function WasteAnalysisPage() {
   const navigate = useNavigate();
   const [currentSection, setCurrentSection] = useState(0);
-  const sectionsRef = useRef<Array<HTMLDivElement | null>>([]);
+  // Fix: Explicitly type the ref array
+  const sectionsRef = useRef<SectionRefs>([]);  
 
   // 🔹 특정 섹션으로 부드럽게 스크롤
   const scrollToSection = (index: number) => {
@@ -40,7 +44,8 @@ export default function WasteAnalysisPage() {
       <div className="relative z-50 pt-16">
         {/* ✅ 1️⃣ 첫 번째 섹션: 애니메이션 타이틀 */}
         <section
-          ref={(el) => (sectionsRef.current[0] = el)}
+          ref={(el) => {if (el) sectionsRef.current[0] = el as HTMLDivElement;
+          }}
           className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50 relative"
         >
           {/* 🌏 배경 애니메이션 */}
@@ -90,7 +95,9 @@ export default function WasteAnalysisPage() {
 
         {/* ✅ 2️⃣ 두 번째 섹션: 로딩 화면 */}
         <section
-          ref={(el) => (sectionsRef.current[1] = el)}
+          ref={(el) => {
+            if (el) sectionsRef.current[1] = el as HTMLDivElement;
+          }}
           className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50"
         >
           <motion.div
@@ -115,7 +122,9 @@ export default function WasteAnalysisPage() {
 
         {/* ✅ 3️⃣ 세 번째 섹션: AI 분석 결과 */}
         <section
-          ref={(el) => (sectionsRef.current[2] = el)}
+          ref={(el) => {
+            if (el) sectionsRef.current[2] = el as HTMLDivElement;
+          }}
           className="min-w-full py-20 flex flex-col items-center justify-center text-center bg-white/50"
         >
           <h2 className="text-4xl font-bold">AI 분석 결과</h2>

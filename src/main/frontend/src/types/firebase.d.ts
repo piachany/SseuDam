@@ -73,7 +73,7 @@ export interface PasswordReset {
   email: string;
   resetToken: string;
   expiresAt: Timestamp;
-  createdAt: Timestamp;
+  created_at: Timestamp;
   used: boolean;
   usedAt?: Timestamp;
   attempts: number;
@@ -86,7 +86,7 @@ export interface AnalysisResult {
   earned: number;
   inearned: number;
   material: string;
-  createdAt: Timestamp;
+  created_at: Timestamp;
   location?: string;
   imageUrl?: string;
 }
