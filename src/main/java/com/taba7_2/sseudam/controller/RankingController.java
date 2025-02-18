@@ -2,8 +2,8 @@ package com.taba7_2.sseudam.controller;
 
 import com.google.firebase.auth.FirebaseAuthException;
 import com.taba7_2.sseudam.model.RankAccount;
-import com.taba7_2.sseudam.repository.RankAccountRepository;
 import com.taba7_2.sseudam.service.FirebaseAuthService;
+import com.taba7_2.sseudam.service.RankCalculatorService;
 import com.taba7_2.sseudam.service.RankingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,14 +15,16 @@ import java.util.*;
 public class RankingController {
     private final RankingService rankingService;
     private final FirebaseAuthService firebaseAuthService;
+    private final RankCalculatorService rankCalculatorService;
 
-    public RankingController(RankingService rankingService, FirebaseAuthService firebaseAuthService) {
+    public RankingController(RankingService rankingService, FirebaseAuthService firebaseAuthService, RankCalculatorService rankCalculatorService) {
         this.rankingService = rankingService;
         this.firebaseAuthService = firebaseAuthService;
+        this.rankCalculatorService = rankCalculatorService;
     }
 
     /**
-     * ✅ /api/rankings - 모든 랭킹 정보 한 번에 제공
+     * ✅ /api/rankings - 모든 랭킹 정보 제공 (전체 랭킹 or 특정 아파트 랭킹)
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getDashboardData(
@@ -47,7 +49,12 @@ public class RankingController {
             // 🔹 사용자의 아파트 랭킹 조회
             List<Map<String, Object>> userApartmentRankings = rankingService.getApartmentRankings(user.getApartmentId(), currentMonth);
 
-            // 🔹 선택한 아파트의 전체 랭킹 (배너에서 선택한 경우)
+            // 🔹 전체 랭킹 조회 (apartmentId가 null이면 전체 조회)
+            List<Map<String, Object>> allRankings = (apartmentId == null)
+                    ? rankingService.getAllRankings(currentMonth)
+                    : null;
+
+            // 🔹 특정 아파트의 전체 랭킹 (배너에서 선택한 경우)
             List<Map<String, Object>> selectedApartmentRankings = (apartmentId != null)
                     ? rankingService.getApartmentRankings(apartmentId, currentMonth)
                     : null;
@@ -59,11 +66,14 @@ public class RankingController {
             // 🔹 월별 획득 포인트 조회
             List<Map<String, Object>> monthlyPoints = rankingService.getMonthlyPoints(userUid);
 
+            String grade = rankCalculatorService.getGrade(user.getAccumulatedPoints());
+
             // ✅ 응답 데이터 구성
             Map<String, Object> response = new HashMap<>();
             response.put("user", Map.of(
                     "userUid", user.getUid(),
                     "nickname", user.getNickname(),
+                    "grade", grade,
                     "apartmentId", user.getApartmentId(),
                     "monthlyPoints", user.getMonthlyPoints(),
                     "accumulatedPoints", user.getAccumulatedPoints()
@@ -73,6 +83,7 @@ public class RankingController {
             response.put("top3Users", top3Users);
             response.put("userApartmentRankings", userApartmentRankings);
             response.put("selectedApartmentRankings", selectedApartmentRankings);
+            response.put("allRankings", allRankings);
             response.put("monthlyPoints", monthlyPoints);
 
             return ResponseEntity.ok(response);
