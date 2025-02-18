@@ -1,24 +1,22 @@
-import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";  // ✅ navigate를 실제로 사용
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import BackgroundAnimation from "@/components/layout/BackgroudAnimation";
 
-function WasteAnalysisPage() {
-  const navigate = useNavigate(); // ✅ 실제로 사용됨
+// Define section ref type
+type SectionRefs = Array<HTMLDivElement | null>;
+
 // 🌟 WasteAnalysisPage Component
 export default function WasteAnalysisPage() {
   const navigate = useNavigate();
   const [currentSection, setCurrentSection] = useState(0);
-  const sectionsRef = useRef<Array<HTMLDivElement | null>>([]);
-  const sectionsRef = useRef<Array<HTMLDivElement | null>>([]);
+  // Fix: Explicitly type the ref array
+  const sectionsRef = useRef<SectionRefs>([]);  
 
   // 🔹 특정 섹션으로 부드럽게 스크롤
   const scrollToSection = (index: number) => {
-    const section = sectionsRef.current[index]; // ✅ HTMLDivElement | null 타입
-    section?.scrollIntoView({ behavior: "smooth" });
+    sectionsRef.current[index]?.scrollIntoView({ behavior: "smooth" });
     setCurrentSection(index);
   };
 
@@ -44,13 +42,10 @@ export default function WasteAnalysisPage() {
       </div>
 
       <div className="relative z-50 pt-16">
-        {/* ✅ 첫 번째 섹션: 메인 타이틀 */}
-        <section ref={(el) => (sectionsRef.current[0] = el as HTMLDivElement | null)} className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-gray-100/50">
-          <motion.h1 initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} className="text-6xl font-extrabold">
-            <span className="text-blue-600">"지구</span>를 위한 한걸음"
         {/* ✅ 1️⃣ 첫 번째 섹션: 애니메이션 타이틀 */}
         <section
-          ref={(el) => (sectionsRef.current[0] = el)}
+          ref={(el) => {if (el) sectionsRef.current[0] = el as HTMLDivElement;
+          }}
           className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50 relative"
         >
           {/* 🌏 배경 애니메이션 */}
@@ -98,12 +93,11 @@ export default function WasteAnalysisPage() {
           </motion.button>
         </section>
 
-        {/* ✅ 두 번째 섹션: 로딩 화면 */}
-        <section ref={(el) => (sectionsRef.current[1] = el as HTMLDivElement | null)} className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1, y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-lg mb-4">
         {/* ✅ 2️⃣ 두 번째 섹션: 로딩 화면 */}
         <section
-          ref={(el) => (sectionsRef.current[1] = el)}
+          ref={(el) => {
+            if (el) sectionsRef.current[1] = el as HTMLDivElement;
+          }}
           className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50"
         >
           <motion.div
@@ -126,11 +120,11 @@ export default function WasteAnalysisPage() {
           </motion.div>
         </section>
 
-        {/* ✅ 세 번째 섹션: AI 분석 결과 */}
-        <section ref={(el) => (sectionsRef.current[2] = el as HTMLDivElement | null)} className="min-w-full py-20 flex flex-col items-center justify-center text-center bg-white/50">
         {/* ✅ 3️⃣ 세 번째 섹션: AI 분석 결과 */}
         <section
-          ref={(el) => (sectionsRef.current[2] = el)}
+          ref={(el) => {
+            if (el) sectionsRef.current[2] = el as HTMLDivElement;
+          }}
           className="min-w-full py-20 flex flex-col items-center justify-center text-center bg-white/50"
         >
           <h2 className="text-4xl font-bold">AI 분석 결과</h2>
@@ -138,11 +132,6 @@ export default function WasteAnalysisPage() {
 
           {/* 📊 카드 리스트 */}
           <div className="mt-8 grid grid-cols-3 gap-6 justify-items-center">
-            {cardData.map((item, index) => <Card key={index} {...item} />)}
-          </div>
-        </section>
-
-        {/* ✅ 추가 버튼 (navigate 사용) */}
             {cardData.map((item, index) => (
               <Card key={index} {...item} />
             ))}
@@ -190,6 +179,3 @@ const Card = ({ material, status, tag }: CardProps) => (
     </div>
   </div>
 );
-
-// ✅ `export default`는 한 번만 사용
-export default WasteAnalysisPage;
