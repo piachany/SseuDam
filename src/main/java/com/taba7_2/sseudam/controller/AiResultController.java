@@ -5,11 +5,11 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/ai")
-public class AiResultController {
+public class AIResultController {
 
     private final AiResultService aiResultService;
 
-    public AiResultController(AiResultService aiResultService) {
+    public AIResultController(AiResultService aiResultService) {
         this.aiResultService = aiResultService;
     }
 

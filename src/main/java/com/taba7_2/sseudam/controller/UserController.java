@@ -70,8 +70,8 @@ public class UserController {
             int monthlyPoints = rankAccountOptional.map(RankAccount::getMonthlyPoints).orElse(0);
 
             // ✅ 랭크 및 승급 필요 포인트 계산 (RankCalculatorService 활용)
-            String currentTier = rankCalculatorService.getTier(accumulatedPoints);
-            int pointsNeededForPromotion = rankCalculatorService.getPointsNeededForNextTier(accumulatedPoints);
+            String grade = rankCalculatorService.getGrade(accumulatedPoints);
+            int pointsNeededForPromotion = rankCalculatorService.getPointsNeededForNextGrade(accumulatedPoints);
 
             // ✅ 응답 데이터 구성
             Map<String, Object> response = new HashMap<>();
@@ -79,10 +79,10 @@ public class UserController {
             response.put("nickname", user.getNickname());
             response.put("created_at", user.getCreatedAt());
             response.put("last_login", user.getLastLogin());
-            response.put("accumulated_points", accumulatedPoints);
-            response.put("monthly_points", monthlyPoints);
-            response.put("current_tier", currentTier);
-            response.put("points_needed_for_promotion", pointsNeededForPromotion);
+            response.put("accumulatedPoints", accumulatedPoints);
+            response.put("monthlyPoints", monthlyPoints);
+            response.put("grade", grade);
+            response.put("pointsNeededForPromotion", pointsNeededForPromotion);
             response.put("redirect_url", "/home");
 
             return ResponseEntity.ok(response);
