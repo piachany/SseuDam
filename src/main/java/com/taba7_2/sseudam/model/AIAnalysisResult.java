@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Getter
@@ -14,28 +15,47 @@ import java.time.LocalDateTime;
 public class AIAnalysisResult {
 
     @Id
-    private String uid;  // 사용자 UID (고유값)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false)
-    private int points;  // 최종 포인트
+    private String uid;
 
     @Column(nullable = false)
-    private int successPercent;  // AI 성공률 (0~100%)
+    private int points;
 
     @Column(nullable = false)
-    private int earned;  // 획득 포인트
+    private int successPercent;
 
     @Column(nullable = false)
-    private int inearned;  // 차감 포인트 (기존 inearned 유지)
+    private int earned;
+
+    @Column(nullable = false)
+    private int inearned;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();  // 분석 시간
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(nullable = true)
-    private String material;  // 재질 정보 (nullable)
+    private String material;
 
     @Column(nullable = true)
-    private Long apartmentId;  // 아파트 ID (nullable)
+    private Long apartmentId;
+
+    // ✅ `createdAt`에서 YYYYMM 형식으로 변환된 `month` 추가
+    @Transient  // 데이터베이스에 저장되지 않지만 조회 시 사용할 수 있도록 설정
+    private String month;
+
+    @PostLoad  // 데이터 조회 후 자동으로 month 값을 설정
+    public void postLoad() {
+        this.month = createdAt.format(DateTimeFormatter.ofPattern("yyyyMM"));
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void prePersist() {
+        this.month = createdAt.format(DateTimeFormatter.ofPattern("yyyyMM"));
+    }
 
     public AIAnalysisResult(String uid, int points, int successPercent, int earned, int inearned,
                             String material, Long apartmentId) {
@@ -46,5 +66,6 @@ public class AIAnalysisResult {
         this.inearned = inearned;
         this.material = material;
         this.apartmentId = apartmentId;
+        this.month = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
     }
 }
