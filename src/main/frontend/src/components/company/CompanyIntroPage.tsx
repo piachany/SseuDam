@@ -43,7 +43,7 @@ export function CompanyIntroPage() {
       {/* 🎬 동영상 섹션 */}
       <section
         ref={(el) => (sectionsRef.current[0] = el)}
-        className="w[-full] h-[650px] relative overflow-hidden mt-30 mx-auto"
+        className="w-full h-[650px] relative overflow-hidden mt-30 mx-auto"
       >
         <video
           autoPlay
@@ -94,7 +94,7 @@ export function CompanyIntroPage() {
             <p className="text-white text-sm mb-2">아래로 스크롤하세요</p>
             <svg
               className="w-6 h-6 text-teal-300 animate-bounce"
-              onClick={() => scrollToSection(1)}
+             
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -107,7 +107,8 @@ export function CompanyIntroPage() {
       </section>
 
       {/* 🖼️ 브랜드 스토리 섹션 */}
-      <section className="relative bg-white py-20 px-12">
+      <section className="relative bg-white py-20 px-12"
+      ref={(el) => (sectionsRef.current[1] = el)}>
         <div className="absolute left-0 top-0 w-4/5 h-full bg-gradient-to-br from-gray-100 to-white rounded-r-full z-0" />
         <h2 className="relative z-10 text-3xl font-serif font-bold mb-6 translate-x-12 translate-y-12">
           "Our Mission: A Cleaner Tomorrow."
@@ -122,15 +123,15 @@ export function CompanyIntroPage() {
             <img
               src="/Intro/robot.png"
               alt="브랜드 이미지"
-              className="absolute w-[400px] h-[400px] object-cover opacity-20 pointer-events-none"
+              className="absolute w-[380px] h-[380px] object-cover opacity-20 pointer-events-none"
             />
             <span className="text-5xl text-gray-800 font-extrabold transform -rotate-90">
-              Ssuedam
+          
             </span>
           </div>
 
           {/* 📷 우측 2x2 이미지와 텍스트 */}
-          <div className="grid grid-cols-2 gap-4 relative z-12 w-3/4 transform pl-40">
+          <div className="grid grid-cols-2 gap-2 relative z-12 w-3/4 transform pl-40">
             {[
               { src: "/Intro/intro11.jpg", title: "AI와 함께하는 올바른 분리수거", desc: "버릴 때마다 배우는 올바른 습관" },
               { src: "/Intro/intro12.jpg", title: "분리배출, 이제 손 안에서 스마트하게", desc: "AI 분석 데이터 실시간 확인 가능" },
@@ -166,12 +167,7 @@ export function CompanyIntroPage() {
   animate={{ opacity: 1, y: 0 }}
   transition={{ delay: 1, duration: 1 }}
 >
-  <Button
-    onClick={() => navigate("/auth")}
-    className="px-6 py-3 bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 text-white rounded-full shadow-lg hover:scale-105 hover:from-gray-600 hover:to-black transition-all font-semibold"
-  >
-     지금 시작하기
-  </Button>
+ 
 </motion.div>
 
 
