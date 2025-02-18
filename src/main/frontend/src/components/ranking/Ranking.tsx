@@ -13,7 +13,7 @@ import TooltipComponent from 'react-bootstrap/Tooltip';
 
 // api 관련 import
 import { getRankingData, getAptRank } from "@/services/api/ranking";
-import { RankingResponse } from "@/types/RankingResponse";
+// import { RankingResponse } from "@/types/RankingResponse";
 
 const RankingTest = () => {
     useEffect(() => {

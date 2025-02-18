@@ -8,7 +8,7 @@ export interface RankingUser {
     ranking: number;
     pointsToNextGrade: number;
     accumulatedPoints: number;
-    uid: string;
+    uid: string | null; // user(사용자)는 uid가 아닌 userUid임
     userUid: string | null; // user(사용자)의 uid는 userUid로 특별함
 }
 
