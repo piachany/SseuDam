@@ -23,49 +23,45 @@ public class RankingController {
         this.rankCalculatorService = rankCalculatorService;
     }
 
-    /**
-     * ✅ /api/rankings - 모든 랭킹 정보 제공 (전체 랭킹 or 특정 아파트 랭킹)
-     */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getDashboardData(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestParam(required = false) Long apartmentId
+            @RequestParam(required = false) String apartmentId
     ) {
         try {
-            // 🔹 Firebase 토큰에서 UID 가져오기
+            // 🔹 Firebase 인증을 통해 사용자 UID 가져오기
             String userUid = firebaseAuthService.getUidFromToken(authorizationHeader);
-            int currentMonth = java.time.LocalDate.now().getMonthValue();
-
-            // 🔹 사용자 정보 가져오기
             Optional<RankAccount> userRankOpt = rankingService.getUserRanking(userUid);
+
             if (userRankOpt.isEmpty()) {
                 return ResponseEntity.status(404).body(Map.of("message", "User ranking not found"));
             }
+
             RankAccount user = userRankOpt.get();
 
-            // 🔹 TOP 3 랭킹 조회
-            List<Map<String, Object>> top3Users = rankingService.getTop3Rankings(currentMonth);
+            // 🔹 현재 사용자의 아파트 랭킹 조회
+            List<Map<String, Object>> userApartmentRankings = rankingService.getApartmentRankings(user.getApartmentId());
 
-            // 🔹 사용자의 아파트 랭킹 조회
-            List<Map<String, Object>> userApartmentRankings = rankingService.getApartmentRankings(user.getApartmentId(), currentMonth);
+            // 🔹 특정 아파트 랭킹 조회 (apartmentId가 명시적으로 주어졌을 경우에만)
+            List<Map<String, Object>> selectedApartmentRankings = null;
+            if (apartmentId != null) {
+                if (apartmentId.equals("all")) {
+                    selectedApartmentRankings = rankingService.getAllRankings();
+                } else {
+                    try {
+                        Long apartmentIdLong = Long.parseLong(apartmentId);
+                        selectedApartmentRankings = rankingService.getApartmentRankings(apartmentIdLong);
+                    } catch (NumberFormatException e) {
+                        return ResponseEntity.badRequest().body(Map.of("message", "Invalid apartmentId format"));
+                    }
+                }
+            }
 
-            // 🔹 전체 랭킹 조회 (apartmentId가 null이면 전체 조회)
-            List<Map<String, Object>> allRankings = (apartmentId == null)
-                    ? rankingService.getAllRankings(currentMonth)
-                    : null;
+            // 🔹 사용자 위/아래 랭킹 가져오기
+            Map<String, Object> aboveUser = rankingService.getAboveUser(user.getApartmentId(), userUid);
+            Map<String, Object> belowUser = rankingService.getBelowUser(user.getApartmentId(), userUid);
 
-            // 🔹 특정 아파트의 전체 랭킹 (배너에서 선택한 경우)
-            List<Map<String, Object>> selectedApartmentRankings = (apartmentId != null)
-                    ? rankingService.getApartmentRankings(apartmentId, currentMonth)
-                    : null;
-
-            // 🔹 사용자의 위/아래 랭킹 찾기
-            Map<String, Object> aboveUser = rankingService.getAboveUser(user.getApartmentId(), currentMonth, userUid);
-            Map<String, Object> belowUser = rankingService.getBelowUser(user.getApartmentId(), currentMonth, userUid);
-
-            // 🔹 월별 획득 포인트 조회
-            List<Map<String, Object>> monthlyPoints = rankingService.getMonthlyPoints(userUid);
-
+            // 🔹 현재 사용자의 등급 정보 가져오기
             String grade = rankCalculatorService.getGrade(user.getAccumulatedPoints());
 
             // ✅ 응답 데이터 구성
@@ -80,11 +76,8 @@ public class RankingController {
             ));
             response.put("aboveUser", aboveUser);
             response.put("belowUser", belowUser);
-            response.put("top3Users", top3Users);
             response.put("userApartmentRankings", userApartmentRankings);
             response.put("selectedApartmentRankings", selectedApartmentRankings);
-            response.put("allRankings", allRankings);
-            response.put("monthlyPoints", monthlyPoints);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {

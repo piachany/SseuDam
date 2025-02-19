@@ -65,18 +65,19 @@ public class RankingService {
         }
     }
 
-    /**
-     * ✅ TOP 3 랭킹 조회
-     */
-    public List<Map<String, Object>> getTop3Rankings(int month) {
-        return rankAccountRepository.findTop3ByMonth(month).stream().map(this::mapRankingData).toList();
-    }
 
     /**
      * ✅ 특정 아파트 내 랭킹 조회
      */
-    public List<Map<String, Object>> getApartmentRankings(Long apartmentId, int month) {
-        return rankAccountRepository.findByApartmentIdAndMonth(apartmentId, month).stream().map(this::mapRankingData).toList();
+    public List<Map<String, Object>> getApartmentRankings(Long apartmentId) {
+        return rankAccountRepository.findByApartmentId(apartmentId).stream().map(this::mapRankingData).toList();
+    }
+
+    public List<Map<String, Object>> getApartmentOrGlobalRankings(String apartmentId) {
+        if (apartmentId == null || "all".equals(apartmentId)) {
+            return getAllRankings();
+        }
+        return getApartmentRankings(Long.parseLong(apartmentId));
     }
 
     /**
@@ -89,14 +90,14 @@ public class RankingService {
     /**
      * ✅ 특정 사용자의 위/아래 랭킹 찾기
      */
-    public Map<String, Object> getAboveUser(Long apartmentId, int month, String userUid) {
-        List<Map<String, Object>> rankings = getApartmentRankings(apartmentId, month);
+    public Map<String, Object> getAboveUser(Long apartmentId, String userUid) {
+        List<Map<String, Object>> rankings = getApartmentRankings(apartmentId);
         int index = findUserIndex(rankings, userUid);
         return (index > 0) ? rankings.get(index - 1) : null;
     }
 
-    public Map<String, Object> getBelowUser(Long apartmentId, int month, String userUid) {
-        List<Map<String, Object>> rankings = getApartmentRankings(apartmentId, month);
+    public Map<String, Object> getBelowUser(Long apartmentId, String userUid) {
+        List<Map<String, Object>> rankings = getApartmentRankings(apartmentId);
         int index = findUserIndex(rankings, userUid);
         return (index < rankings.size() - 1) ? rankings.get(index + 1) : null;
     }
@@ -104,11 +105,8 @@ public class RankingService {
     /**
      * ✅ 전체 랭킹 조회
      */
-    public List<Map<String, Object>> getAllRankings(int month) {
-        return rankAccountRepository.findAllByMonth(month)
-                .stream()
-                .map(this::mapRankingData)
-                .toList();
+    public List<Map<String, Object>> getAllRankings() {
+        return rankAccountRepository.findAllRankings().stream().map(this::mapRankingData).toList();
     }
 
     /**
