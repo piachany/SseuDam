@@ -5,6 +5,18 @@ export interface User {
     apartment: string;
     location: string;
     nickname: string;
+    created_at: string;
+    last_login: string;
+    grade?: string;
+    token?: string;
+    monthly_points: number;
+    points_needed_for_promotion?: number;
+    role: string;
+    redirect_url?: string;
+    monthlyPoints?: number;
+    isGuest: boolean;
+    accumulatedPoints?: number;
+    uid: string;
   }
   
   export interface RankAccount {

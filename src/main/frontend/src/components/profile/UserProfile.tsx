@@ -1,31 +1,24 @@
-import { useEffect, useState } from "react";
-import { auth, db } from "@/lib/firebase/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@radix-ui/react-dialog";
 import * as LucideIcons from "lucide-react";
 import { ComponentType } from "react";
 
 interface UserProfileProps {
   userData: {
-    nickname?: string;  // username을 nickname으로 변경
+    nickname?: string;
     email?: string;
-    lastLogin?: string;
-    createdAt?: string;
+    selectedIcon?: string;
+    grade?: string;
+    current_tier?: string;
+    points_needed_for_promotion: number;
+    points: number;
+    monthly_points?: number;
+    accumulatedPoints?: number;
+    monthlyPoints: number;
+    earnedPoints?: number;
+    last_login?: string;
+    created_at?: string;
   };
-}
-
-interface UserData {
-  nickname?: string;  // username을 nickname으로 변경
-  email?: string;
-  selectedIcon?: string;
-  currentRank?: string;
-  points?: number;
-  nextRankPoints?: number;
-  totalPoints?: number;
-  monthlyPoints?: number;
-  earnedPoints?: number;
-  lastLogin?: string;
-  createdAt?: string;
 }
 
 const availableIcons = Object.keys(LucideIcons)
@@ -45,76 +38,29 @@ const formatDate = (dateString?: string) => {
 };
 
 export function UserProfile({ userData: initialUserData }: UserProfileProps) {
-  const [user, setUser] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [user, setUser] = useState(initialUserData);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-          setError("로그인된 사용자가 없습니다.");
-          setLoading(false);
-          return;
-        }
-
-        const userDocRef = doc(db, "users", currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        if (userDoc.exists()) {
-          const firestoreData = userDoc.data() as UserData;
-          const mergedData = {
-            ...initialUserData,
-            ...firestoreData
-          };
-          setUser(mergedData);
-          localStorage.setItem("user", JSON.stringify(mergedData));
-        } else {
-          setError("사용자 정보를 찾을 수 없습니다.");
-        }
-      } catch (err) {
-        console.error("❌ 사용자 정보 가져오기 실패:", err);
-        setError("데이터를 불러오는 중 오류가 발생했습니다.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [initialUserData]);
 
   const handleIconSelect = async (iconName: keyof typeof LucideIcons) => {
     try {
-      const currentUser = auth.currentUser;
-      if (!currentUser) return;
+      const response = await fetch('/api/user/update-icon', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ selectedIcon: iconName }),
+      });
 
-      const userDocRef = doc(db, "users", currentUser.uid);
-      await updateDoc(userDocRef, { selectedIcon: iconName });
+      if (!response.ok) {
+        throw new Error('아이콘 업데이트 실패');
+      }
 
-      setUser((prev) => prev ? { ...prev, selectedIcon: iconName } : prev);
+      setUser(prev => ({ ...prev, selectedIcon: iconName }));
       setIsDialogOpen(false);
     } catch (err) {
       console.error("❌ 아이콘 업데이트 실패:", err);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-32">
-        <p className="text-green-600 animate-pulse">로딩 중...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-100 text-red-700 p-4 rounded-lg shadow-md">
-        {error}
-      </div>
-    );
-  }
 
   if (!user) return null;
 
@@ -162,33 +108,31 @@ export function UserProfile({ userData: initialUserData }: UserProfileProps) {
         <p className="text-green-700">{user.email}</p>
 
         <div className="mt-4 space-y-2 text-sm text-green-600">
-          <p>가입일: {formatDate(initialUserData.createdAt)}</p>
-          <p>마지막 로그인: {formatDate(initialUserData.lastLogin)}</p>
+          <p>가입일: {formatDate(user.created_at)}</p>
+          <p>마지막 로그인: {formatDate(user.last_login)}</p>
         </div>
 
+        {/* ✅ 현재 등급 및 승급까지 필요한 포인트 */}
         <div className="grid grid-cols-2 gap-4 mt-6 text-center">
           <div className="bg-green-50 p-3 rounded-lg shadow-sm border border-green-200">
             <p className="text-sm text-green-700">현재 등급</p>
-            <p className="text-lg font-semibold text-green-900">{user.currentRank || "등급 없음"}</p>
+            <p className="text-lg font-semibold text-green-900">{user.grade || "등급 없음"}</p>
           </div>
           <div className="bg-green-50 p-3 rounded-lg shadow-sm border border-green-200">
             <p className="text-sm text-green-700">승급까지 필요한 포인트</p>
-            <p className="text-lg font-semibold text-green-900">{user.nextRankPoints || 0} P</p>
+            <p className="text-lg font-semibold text-green-900">{user.points_needed_for_promotion || 0} P</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mt-6 text-center">
+        {/* ✅ 누적 포인트 및 월별 포인트 (현재 등급 아래로 정렬) */}
+        <div className="grid grid-cols-2 gap-4 mt-4 text-center">
           <div className="bg-green-50 p-3 rounded-lg shadow-sm border border-green-200">
             <p className="text-sm text-green-700">누적 포인트</p>
-            <p className="text-lg font-semibold text-green-900">{user.totalPoints || 0} P</p>
+            <p className="text-lg font-semibold text-green-900">{user.accumulatedPoints || 0} P</p>
           </div>
           <div className="bg-green-50 p-3 rounded-lg shadow-sm border border-green-200">
             <p className="text-sm text-green-700">월별 포인트</p>
             <p className="text-lg font-semibold text-green-900">{user.monthlyPoints || 0} P</p>
-          </div>
-          <div className="bg-green-50 p-3 rounded-lg shadow-sm border border-green-200">
-            <p className="text-sm text-green-700">획득 포인트</p>
-            <p className="text-lg font-semibold text-green-900">{user.earnedPoints || 0} P</p>
           </div>
         </div>
       </div>

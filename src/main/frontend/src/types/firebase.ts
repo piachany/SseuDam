@@ -8,7 +8,7 @@ export interface User {
   email: string;
   emailVerified: boolean;
   role: 'user' | 'admin';
-  createdAt: FieldValue; // 변경
-  updatedAt: FieldValue; // 필요에 따라 수정
+  created_At: FieldValue; // 변경
+  updated_at: FieldValue; // 필요에 따라 수정
   address?: string;
 }
