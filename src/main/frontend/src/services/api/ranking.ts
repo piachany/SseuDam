@@ -1,77 +1,23 @@
-import api from "../../api/axiosInstance";
-import { RankingResponse } from "../../types/RankingResponse";
-import { auth } from "@/lib/firebase/firebase";
+import api from "@/api/axiosInstance";
+import { RankingResponse } from "@/types/RankingResponse";
 
-// ✅ Firebase 사용자 토큰 가져오기
+// ✅ Firebase 사용자 토큰 하드코딩 (테스트용)
 const getFirebaseToken = async (): Promise<string> => {
-    const currentUser = auth.currentUser;
-    if (!currentUser) throw new Error("🚫 Firebase 사용자 인증이 필요합니다.");
-
-    // 최신 토큰 가져오기
-    const idToken = await currentUser.getIdToken(true);
-    return `Bearer ${idToken}`;
+  // 아래 하드코딩된 토큰을 사용합니다.
+  return "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjBjYmJiZDI2NjNhY2U4OTU4YTFhOTY4ZmZjNDQxN2U4MDEyYmVmYmUiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcmVjeWxpbmctMzIyNWEiLCJhdWQiOiJyZWN5bGluZy0zMjI1YSIsImF1dGhfdGltZSI6MTczOTk1MzEwOCwidXNlcl9pZCI6IlU0TjJTR3dZSjZRMHV5c25oZVlLSHdtSWlTQTIiLCJzdWIiOiJVNE4yU0d3WUo2UTB1eXNuaGVZS0h3bUlpU0EyIiwiaWF0IjoxNzM5OTUzMTA5LCJleHAiOjE3Mzk5NTY3MDksImVtYWlsIjoiY3Jvc2Vmcm9nQG5hbmVyLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJlbWFpbCI6WyJjcm9zZWZyb2dAbmFuZXIuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.LlJRy1B6oP9VLx1wEErlHVbbeUoKhcNy1us8xuXdY32RMlhtgZo8OnVJysh3jUPj2GmXeiXhP4kc0g6cTgEQOJNSVdhmROXketFNqc4MRJH8xv7ovO2XBAwWaj2-a0NVA_EhiuA1ggWzNXy4CNC6V6CHNSWiEzGULfA5s50ErqeDUddRgKJNPy4dXJ2kcOIVVhvyd44fIf3n7QJwhfoxq9wclyrYVDmG67Fqr_LPha-yto0L1C_lny8cmfAr_ZwVBSlZlGxkRDEP3kOK5I7HXzzJqpJb_2aaEJzl_wnuVdFtqowAbXBGGh4T7cb5Y9cV0Cf937E6A5cz9jtb8yJ79Q";
 };
 
-// ✅ 전체 랭킹 데이터 가져오기
-export async function getRankingData(): Promise<RankingResponse | undefined> {
+export const getAptRank = async (apartmentId: string): Promise<RankingResponse> => {
     try {
         const token = await getFirebaseToken();
-        const response = await api.get<RankingResponse>('/rankings', {
+        const response = await api.get<RankingResponse>(`/rankings?apartmentId=${apartmentId}`, {
             headers: {
                 Authorization: token,
             },
         });
-        console.log('📊 전체 랭킹 데이터:', response.data);
         return response.data;
-    } catch (error) {
-        console.error("❌ 전체 랭킹 데이터 로딩 실패:", error);
+    } catch (error: unknown) {
+        console.error("Error fetching apartment ranking:", error);
+        throw error;
     }
-}
-
-// ✅ 특정 아파트의 랭킹 데이터 가져오기
-export async function getAptRank(id: number): Promise<RankingResponse["selectedApartmentRankings"]> {
-    try {
-        const token = await getFirebaseToken();
-        const response = await api.get<RankingResponse>(`/rankings?apartmentId=${id}`, {
-            headers: {
-                Authorization: token,
-            },
-        });
-        console.log(`🏢 아파트 ${id} 랭킹 데이터:`, response.data);
-        return response.data.selectedApartmentRankings ?? [];
-    } catch (error) {
-        console.error(`❌ 아파트 id=${id} 랭킹 데이터 로딩 실패:`, error);
-        return [];
-    }
-}
-
-
-
-
-
-// 아래는 토큰을 추가하기 전의 코드임
-// import api from "../../api/axiosInstance";
-// import { RankingResponse } from "../../types/RankingResponse";
-
-// // 전체 랭킹 데이터 가져오기
-// export async function getRankingData(): Promise<RankingResponse | undefined> {
-//     try {
-//         const response = await api.get<RankingResponse>('/rankings');
-//         console.log('📊 전체 랭킹 데이터:', response.data);
-//         return response.data;
-//     } catch (error) {
-//         console.error("전체 랭킹 데이터 로딩에 실패함", error);
-//     }
-// }
-
-// // 특정 아파트의 랭킹 데이터 가져오기
-// export async function getAptRank(id: number): Promise<RankingResponse["selectedApartmentRankings"]> {
-//     try {
-//         const response = await api.get<RankingResponse>(`/rankings?apartmentId=${id}`);
-//         console.log(`🏢 아파트 ${id} 랭킹 데이터:`, response.data);
-//         return response.data.selectedApartmentRankings ?? [];
-//     } catch (error) {
-//         console.error(`아파트 id = ${id} 데이터 로딩에 실패함`, error);
-//         return [];
-//     }
-// }
+};

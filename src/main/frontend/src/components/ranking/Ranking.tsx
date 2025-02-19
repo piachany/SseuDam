@@ -10,39 +10,6 @@ import Dropdown from "react-bootstrap/Dropdown";
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import TooltipComponent from 'react-bootstrap/Tooltip';
 
-
-// api 관련 import
-import { getRankingData, getAptRank } from "@/services/api/ranking";
-// import { RankingResponse } from "@/types/RankingResponse";
-
-const RankingTest = () => {
-    useEffect(() => {
-        // API 요청 테스트
-        const fetchData = async () => {
-            const data = await getRankingData();
-            console.log("✅ API 응답 데이터:", data);
-        };
-        fetchData();
-    }, []);
-
-    return (
-        <div>
-            <h2>📡 API 테스트 중...</h2>
-            <p>콘솔을 확인해주세요.</p>
-        </div>
-    );
-};
-
-export default RankingTest;
-
-
-// 현재 로그인된 사용자 정보 (공주아파트 소속)
-const currentUserName = '김제니';
-const currentUserApartment = '공주아파트';
-
-// =============================
-// 1) 애니메이션 및 오버레이 CSS 정의
-// =============================
 const AnimationStyles = () => (
   <style>{`
     @keyframes bounceIn {
@@ -64,8 +31,6 @@ const AnimationStyles = () => (
     .animate-bounceIn {
       animation: bounceIn 1s ease-out forwards;
     }
-
-    /* 360도 회전을 위한 3D 관련 클래스 */
     .rotate-3d-container {
       perspective: 1000px;
     }
@@ -76,8 +41,6 @@ const AnimationStyles = () => (
     .group:hover .rotate-3d {
       transform: rotateY(360deg);
     }
-
-    /* 스파클 효과를 위한 keyframes */
     @keyframes sparkleSequence {
       0%, 20% {
         background-position: 0% 0%;
@@ -123,9 +86,6 @@ const AnimationStyles = () => (
   `}</style>
 );
 
-// =============================
-// 2) UserCard 컴포넌트
-// =============================
 const UserCard = ({
   name,
   grade,
@@ -185,9 +145,6 @@ const UserCard = ({
   );
 };
 
-// =============================
-// 3) EcoProgressBar 컴포넌트
-// =============================
 const EcoProgressBar = ({ totalXP, grade }: { totalXP: number; grade: string }) => {
   const levelUpPoints = 10000;
   const progressPercentage = (totalXP / levelUpPoints) * 100;
@@ -224,11 +181,9 @@ const EcoProgressBar = ({ totalXP, grade }: { totalXP: number; grade: string }) 
   );
 };
 
-// =============================
-// 4) 메인 Ranking 컴포넌트
-// =============================
 export function Ranking() {
   const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedApartment, setSelectedApartment] = useState("공주아파트");
   const navigate = useNavigate();
@@ -236,38 +191,32 @@ export function Ranking() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const userData = await fetchUsers();
-        console.log("Fetched users:", userData);
-        setUsers(userData);
+        const { users: fetchedUsers, currentUser: fetchedCurrentUser } = await fetchUsers(selectedApartment);
+        console.log("Fetched users:", fetchedUsers);
+        setUsers(fetchedUsers);
+        setCurrentUser(fetchedCurrentUser);
       } catch (error) {
         console.error("Error loading data:", error);
       }
     };
     loadData();
-  }, []);
+  }, [selectedApartment]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedApartment]);
 
-  // 필터링: 종합랭킹 또는 아파트별
   const filteredUsers = selectedApartment === "종합랭킹"
     ? users
     : users.filter(user => user.apartment === selectedApartment);
 
-  // 이번달 Eco XP 내림차순 정렬
-  const sortedUsers = [...filteredUsers].sort((a, b) => b.monthlyPoints - a.monthlyPoints);
+    const sortedUsers = [...filteredUsers].sort((a, b) => a.rank - b.rank);
 
-  // 페이지네이션 데이터
-  const usersPerPage = 10;
-  const paginatedUsers = sortedUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
 
-  // 현재 사용자 (공주아파트, 김제니)
-  const currentUser = users.find(u => u.name === currentUserName && u.apartment === currentUserApartment);
-  const currentIndex = sortedUsers.findIndex(u => u.name === currentUserName);
+  const currentIndex = currentUser ? sortedUsers.findIndex(u => u.name === currentUser.name) : -1;
 
   let userCards: (User & { position: 'above' | 'current' | 'below' })[] = [];
-  if (currentIndex !== -1) {
+  if (currentUser && currentIndex !== -1) {
     if (currentIndex > 0) {
       userCards.push({ ...sortedUsers[currentIndex - 1], position: 'above' });
     }
@@ -281,7 +230,7 @@ export function Ranking() {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
   const handleNextPage = () => {
-    if (currentPage < Math.ceil(sortedUsers.length / usersPerPage)) setCurrentPage(currentPage + 1);
+    if (currentPage < Math.ceil(sortedUsers.length / 10)) setCurrentPage(currentPage + 1);
   };
 
   if (users.length === 0) {
@@ -303,7 +252,7 @@ export function Ranking() {
         {/* 상단 헤더 및 드롭다운 */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold flex items-center gap-2">
-            🏅대림 1동 분리수거 랭킹
+            🏢 대림 1동 분리수거 랭킹
             <OverlayTrigger
               placement="top"
               overlay={
@@ -467,12 +416,12 @@ export function Ranking() {
         </div>
 
         {/* 2. 사용자 카드 섹션 + 나의 등급 섹션 */}
-        {(selectedApartment === currentUserApartment || selectedApartment === "종합랭킹") && currentIndex !== -1 && (
+        {currentUser && (selectedApartment === currentUser.apartment || selectedApartment === "종합랭킹") && currentIndex !== -1 && (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             <Card className="p-0 overflow-hidden border border-gray-300 rounded-lg flex flex-col h-full">
               {userCards.map((user, idx) => {
                 let rankDifference = '';
-                if (user.name === currentUserName) {
+                if (user.name === currentUser.name) {
                   const percent = Math.round(((currentIndex + 1) / sortedUsers.length) * 100);
                   rankDifference = `상위 ${percent}%`;
                 } else if (user.position === 'above') {
@@ -490,7 +439,7 @@ export function Ranking() {
                     message={`총 획득 Eco XP🌳: ${user.totalPoints}`}
                     rank={`${sortedUsers.findIndex(u => u.name === user.name) + 1}위`}
                     rankDifference={rankDifference}
-                    highlight={user.name === currentUserName}
+                    highlight={user.name === currentUser.name}
                     isFirst={idx === 0}
                     isLast={idx === (userCards.length - 1)}
                   />
@@ -498,9 +447,7 @@ export function Ranking() {
               })}
             </Card>
             <div className="flex flex-col gap-6">
-              {currentUser && (
-                <EcoProgressBar totalXP={currentUser.totalPoints} grade={currentUser.grade} />
-              )}
+              <EcoProgressBar totalXP={currentUser.totalPoints} grade={currentUser.grade} />
               {/* 캐릭터 카드 이미지: 클릭 시 Rank_Tier_Guide.tsx로 이동하며 state 전달 */}
               <img
                 src="/Ranking/Character_Card.png"
@@ -515,9 +462,9 @@ export function Ranking() {
         {/* 3. 랭킹보드 섹션 */}
         <div className="mt-8">
           <h2 className="text-2xl font-bold mb-4">🏆 {selectedApartment} 랭킹보드</h2>
-          {paginatedUsers.length > 0 ? (
-            paginatedUsers.map((user, index) => {
-              const actualIndex = (currentPage - 1) * usersPerPage + index;
+          {sortedUsers.length > 0 ? (
+            sortedUsers.slice((currentPage - 1) * 10, currentPage * 10).map((user, index) => {
+              const actualIndex = (currentPage - 1) * 10 + index;
               return (
                 <Card key={user.name} className="flex items-center p-4 mb-2 shadow-sm bg-white">
                   <span className="text-xl font-bold w-12">{actualIndex + 1}위</span>
@@ -541,7 +488,7 @@ export function Ranking() {
             <Button onClick={handlePrevPage} disabled={currentPage === 1} className="mx-2 bg-black text-white">
               이전
             </Button>
-            {[...Array(Math.ceil(sortedUsers.length / usersPerPage)).keys()].map(page => (
+            {[...Array(Math.ceil(sortedUsers.length / 10)).keys()].map(page => (
               <Button
                 key={page + 1}
                 onClick={() => setCurrentPage(page + 1)}
@@ -550,7 +497,7 @@ export function Ranking() {
                 {page + 1}
               </Button>
             ))}
-            <Button onClick={handleNextPage} disabled={currentPage >= Math.ceil(sortedUsers.length / usersPerPage)} className="mx-2 bg-black text-white">
+            <Button onClick={handleNextPage} disabled={currentPage >= Math.ceil(sortedUsers.length / 10)} className="mx-2 bg-black text-white">
               다음
             </Button>
           </div>
