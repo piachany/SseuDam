@@ -37,26 +37,61 @@ public class AIController {
     }
 
     /**
-     * ✅ 성공률에 따라 포인트를 세분화하여 부여 및 차감하는 함수
-     * 최대 획득: 50점, 최대 차감: -50점 (1점 단위 세분화)
-     *
-     * @param successRate 성공률 (0~100)
-     * @return Map<String, Integer> (earned: 획득 포인트, deducted: 차감 포인트)
+     * ✅ 각 객체별 confidence 값을 기반으로 포인트 계산 (-5 ~ +5)
      */
-    private Map<String, Integer> calculatePoints(int successRate) {
-        int earned, deducted;
+    private Map<String, Integer> calculateObjectPoints(double confidence) {
+        int earned = 0;
+        int deducted = 0;
 
-        if (successRate >= 70) {
-            // ✅ 70% 이상: 획득 포인트 계산 (비례식 사용)
-            earned = (int) Math.round((successRate - 70) * (50.0 / 30.0)); // 70~100 → 0~50
-            deducted = 0;
-        } else {
-            // ✅ 70% 미만: 차감 포인트 계산 (비례식 사용)
+        if (confidence >= 0.9) {
+            earned = 5;
+        } else if (confidence >= 0.85) {
+            earned = 4;
+        } else if (confidence >= 0.8) {
+            earned = 3;
+        } else if (confidence >= 0.75) {
+            earned = 2;
+        } else if (confidence >= 0.7) {
+            earned = 1;
+        } else if (confidence >= 0.6) {
             earned = 0;
-            deducted = (int) Math.round((70 - successRate) * (50.0 / 70.0)); // 0~69 → 50~0
+        } else if (confidence >= 0.4) {
+            deducted = -1;
+        } else if (confidence >= 0.3) {
+            deducted = -2;
+        } else if (confidence >= 0.2) {
+            deducted = -3;
+        } else if (confidence >= 0.1) {
+            deducted = -4;
+        } else {
+            deducted = -5;
         }
 
         return Map.of("earned", earned, "deducted", deducted);
+    }
+
+    /**
+     * ✅ AI 분석 결과를 기반으로 포인트 총합 계산 (-5 ~ +5 범위 적용)
+     */
+    private Map<String, Integer> calculateTotalPoints(String userUid, List<Map<String, Object>> detectedObjects) {
+        int totalEarned = 0;
+        int totalDeducted = 0;
+
+        for (Map<String, Object> obj : detectedObjects) {
+            double confidence = (Double) obj.get("confidence");
+            Map<String, Integer> points = calculateObjectPoints(confidence);
+
+            totalEarned += points.get("earned");
+            totalDeducted += points.get("deducted");
+        }
+
+        // ✅ 현재 사용자의 누적 포인트 가져오기
+        int currentAccumulatedPoints = rankingService.getUserRanking(userUid).get().getAccumulatedPoints();
+
+        // ✅ 감점이 누적 포인트보다 크면, 감점을 조정하여 총 포인트가 0 이하로 내려가지 않도록 함
+        totalDeducted = Math.min(Math.abs(totalDeducted), currentAccumulatedPoints);
+
+        return Map.of("earned", totalEarned, "deducted", totalDeducted);
     }
 
     @GetMapping("/results")
@@ -112,8 +147,8 @@ public class AIController {
                     ? (int) Math.round(totalValidConfidence / totalDetectedObjects)
                     : 0; // 탐지된 객체가 없으면 0%
 
-            // ✅ 4. 포인트 계산 (1점 단위 적용)
-            Map<String, Integer> points = calculatePoints(finalSuccessRate);
+            // ✅ 최종 포인트 계산 (누적 포인트가 0 이하로 내려가지 않도록 조정)
+            Map<String, Integer> points = calculateTotalPoints(userUid, processedResults);
             int earned = points.get("earned");
             int deducted = points.get("deducted");
 
@@ -136,6 +171,16 @@ public class AIController {
             materialSuccess.updateSuccessRate(isSuccess);
             materialSuccessRepository.save(materialSuccess);
 
+            // ✅ 포인트 업데이트 전에 기존 등급 저장
+            String previousGrade = rankCalculatorService.getGrade(rankingService.getUserRanking(userUid).get().getAccumulatedPoints());
+
+
+            // ✅ 업데이트 후 새로운 등급 가져오기
+            String newGrade = rankCalculatorService.getGrade(rankingService.getUserRanking(userUid).get().getAccumulatedPoints());
+
+            // ✅ 등급이 상승했을 때만 프로모션 메시지 표시
+            String promotionMessage = !previousGrade.equals(newGrade) ? "🎉 축하합니다! 등급이 상승했습니다." : "";
+
             // ✅ 8. 프론트엔드에 최종 결과 전송
             Map<String, Object> resultResponse = Map.of(
                     "successRate", finalSuccessRate,
@@ -144,9 +189,9 @@ public class AIController {
                     "deducted", deducted,
                     "updatedMonthlyPoints", rankingService.getUserRanking(userUid).get().getMonthlyPoints(),
                     "updatedAccumulatedPoints", rankingService.getUserRanking(userUid).get().getAccumulatedPoints(),
-                    "grade", rankCalculatorService.getGrade(rankingService.getUserRanking(userUid).get().getAccumulatedPoints()),
+                    "grade", newGrade,
                     "pointsToNextGrade", rankCalculatorService.getPointsNeededForNextGrade(rankingService.getUserRanking(userUid).get().getAccumulatedPoints()),
-                    "promotionMessage", isSuccess ? "🎉 축하합니다! 등급이 상승했습니다." : "",
+                    "promotionMessage", promotionMessage, // ✅ 등급 상승 시에만 메시지 출력
                     "material", selectedCategory
             );
 
