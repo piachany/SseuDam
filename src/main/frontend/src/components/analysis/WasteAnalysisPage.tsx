@@ -34,6 +34,11 @@ export default function WasteAnalysisPage() {
       {/* 🎨 백그라운드 애니메이션 */}
       <BackgroundAnimation />
 
+      {/* ✅ 현재 섹션 표시 UI (왼쪽 상단) */}
+      <div className="fixed top-10 left-10 bg-black text-white px-4 py-2 rounded">
+        현재 섹션: {currentSection + 1} / 4
+      </div>
+
       <div className="relative z-50 pt-16">
         
         {/* ✅ 1️⃣ 첫 번째 섹션: 애니메이션 타이틀 */}
@@ -114,10 +119,7 @@ export default function WasteAnalysisPage() {
 
           {/* 📊 카드 리스트 */}
           <div className="mt-8 grid grid-cols-3 gap-6 justify-items-center">
-            {cardData.slice(0, 3).map((item, index) => <Card key={index} {...item} />)}
-          </div>
-          <div className="mt-6 grid grid-cols-3 gap-6 justify-items-center">
-            {cardData.slice(3, 6).map((item, index) => <Card key={index} {...item} />)}
+            {cardData.map((item, index) => <Card key={index} {...item} />)}
           </div>
         </section>
 
@@ -161,29 +163,30 @@ export default function WasteAnalysisPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // 🌟 카드 UI 컴포넌트
 interface CardProps {
-  material: string
-  status: string
-  tag: string
+  material: string;
+  status: string;
+  img: string;
 }
 
 const cardData: CardProps[] = [
-  { material: "플라스틱", status: "깨끗함", tag: "이물질 없음" },
-  { material: "종이", status: "일부 오염", tag: "이물질 있음" },
-  { material: "캔", status: "깨끗함", tag: "이물질 없음" },
-  { material: "유리", status: "깨끗함", tag: "이물질 없음" },
-  { material: "비닐", status: "일부 오염", tag: "이물질 있음" },
-  { material: "철", status: "깨끗함", tag: "이물질 없음" }
-]
+  { material: "플라스틱", status: "깨끗함", img:"Intro/plastic1.png" },
+  { material: "종이", status: "일부 오염",  img:"Intro/paper1.png" },
+  { material: "캔", status: "깨끗함", img:"Intro/can1.png" },
+  { material: "유리", status: "깨끗함",  img:"Intro/glass1.png" },
+  { material: "비닐", status: "일부 오염",  img:"Intro/vinyl1.png" },
+  { material: "철", status: "깨끗함", img:"Intro/metal1.png" }
+];
 
-const Card = ({ material, status, tag }: CardProps) => (
+const Card = ({ material, status,img }: CardProps) => (
   <div className="w-72 bg-white/70 shadow-md rounded-lg overflow-hidden hover:scale-105 transition-transform">
     <div className="h-40 bg-gray-200/50 flex items-center justify-center">
-      <span className="text-sm text-gray-700">{tag}</span>
+    <img src={img} alt={material} className="w-10 h-10 object-contain" />
+      
     </div>
     <div className="p-4">
       <h3 className="text-lg font-bold">{material}</h3>
