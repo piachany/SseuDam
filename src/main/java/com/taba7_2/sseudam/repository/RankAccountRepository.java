@@ -43,4 +43,27 @@ public interface RankAccountRepository extends JpaRepository<RankAccount, String
         ORDER BY month ASC
     """, nativeQuery = true)
     List<Object[]> getMonthlyPointsByUser(@Param("userUid") String userUid);
+
+    @Query(value = """
+    SELECT uid, nickname, apartment_id, month, monthly_points, accumulated_points,
+           RANK() OVER (PARTITION BY month ORDER BY monthly_points DESC) AS ranking
+    FROM rank_accounts
+    WHERE month = :currentMonth
+""", nativeQuery = true)
+    List<Object[]> findAllByMonth(@Param("currentMonth") int currentMonth);
+
+    @Query(value = """
+        SELECT uid, nickname, apartment_id, month, monthly_points, accumulated_points,
+               RANK() OVER (PARTITION BY month ORDER BY accumulated_points DESC) AS ranking
+        FROM rank_accounts
+        WHERE apartment_id = :apartmentId
+    """, nativeQuery = true)
+    List<Object[]> findByApartmentId(@Param("apartmentId") Long apartmentId);
+
+    @Query(value = """
+        SELECT uid, nickname, apartment_id, month, monthly_points, accumulated_points,
+               RANK() OVER (PARTITION BY month ORDER BY accumulated_points DESC) AS ranking
+        FROM rank_accounts
+    """, nativeQuery = true)
+    List<Object[]> findAllRankings();
 }

@@ -13,6 +13,9 @@ interface UserData {
   email?: string;
   lastLogin?: string;
   createdAt?: string;
+  points_needed_for_promotion: number; 
+  points: number;
+  monthlyPoints: number;
 }
 
 // YouTube 영상 링크 데이터

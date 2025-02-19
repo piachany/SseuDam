@@ -17,14 +17,23 @@ interface UserData {
   email: string;
   username: string;
   role: "user" | "admin";
-  createdAt: string;
+  created_at: string;
   points?: number;
   recycleCount?: number;
-  updatedAt?: string;
-  lastLogin?: string;
+  updated_at?: string;
+  last_login?: string;
   address?: string;
+  monthlyPoints?: number;
+  accumulatedPoints?: number;
+  redirect_url?: string;
+  token?: string;
+  grade?: string;
+  points_needed_for_promotion: number;
+  isGuest: boolean;
+  nickname: string;
+  monthly_points: number;
+  uid: string;
 }
-
 interface ActivityLog {
   userId: string;
   action: string;
@@ -53,10 +62,15 @@ export const signUpUser = async (
       role: "user",
       points: 0,
       recycleCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      lastLogin: new Date().toISOString(),
-      address
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      last_login: new Date().toISOString(),
+      address,
+      isGuest: false, // isGuest 속성 추가
+      nickname: username, // nickname 속성 추가
+      monthly_points: 0, // monthly_points 속성 추가
+      uid: user.uid,
+      points_needed_for_promotion: 0
     };
 
     await setDoc(doc(db, "users", user.uid), userData);
@@ -163,10 +177,19 @@ export const getUserData = async (userId: string): Promise<UserData> => {
         email: auth.currentUser?.email || '',
         username: auth.currentUser?.email?.split('@')[0] || '사용자',
         role: 'user',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         points: 0,
-        recycleCount: 0
+        recycleCount: 0,
+        isGuest: false,
+        nickname: auth.currentUser?.email?.split('@')[0] || '사용자',
+        monthly_points: 0,
+        uid: userId,
+        grade: "일반",
+        points_needed_for_promotion: 0,
+        monthlyPoints: 0,
+        accumulatedPoints: 0,
+        redirect_url: "/home"
       };
 
       await setDoc(doc(db, "users", userId), defaultUserData);
@@ -180,10 +203,18 @@ export const getUserData = async (userId: string): Promise<UserData> => {
       email: auth.currentUser?.email || '',
       username: auth.currentUser?.email?.split('@')[0] || '사용자',
       role: 'user',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       points: 0,
-      recycleCount: 0
+      recycleCount: 0,
+      isGuest: false,
+      nickname: auth.currentUser?.email?.split('@')[0] || '사용자',
+      monthly_points: 0,
+      uid: userId,
+      grade: "일반",
+      points_needed_for_promotion: 0,
+      monthlyPoints: 0,
+      accumulatedPoints: 0
     };
   }
 };
