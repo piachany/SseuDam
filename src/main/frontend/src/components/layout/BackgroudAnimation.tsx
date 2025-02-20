@@ -8,11 +8,11 @@ const LEAF_IMAGE = "https://www.svgrepo.com/show/416476/leaf-salad-seasoning.svg
 const BackgroundAnimation = () => {
   return (
     <div 
-      className="background-container fixed top-0 left-0 w-full h-full pointer-events-none z-0"
-      style={{ 
-        background: 'linear-gradient(to bottom, rgba(168, 230, 207, 0.5), rgba(220, 237, 193, 0.5))',
-        backdropFilter: 'blur(2px)'
-      }}
+    className="background-container fixed top-0 left-0 w-full h-full pointer-events-none z-0"
+    style={{ 
+      background: 'linear-gradient(to bottom, rgba(217, 234, 244, 0.9), rgba(251, 248, 239, 0.9))',
+      backdropFilter: 'blur(3px)'
+    }}
     >
       {/* ☁️ 구름 애니메이션 */}
       {[1, 2, 3].map((cloud) => (

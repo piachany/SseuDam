@@ -111,7 +111,8 @@ const UserCard = ({
     ${isFirst ? 'rounded-t-lg border-t border-l border-r' : ''}
     ${isLast ? 'rounded-b-lg border-b border-l border-r' : ''}
     ${!isFirst && !isLast ? 'border-l border-r' : ''}
-    ${highlight ? 'bg-green-100' : 'bg-white'}
+    ${highlight ? 'bg-blue-200' : 'bg-[#E8EFF4]'}
+
   `;
   return (
     <div className={`p-4 flex flex-col justify-center flex-1 ${borderClasses}`}>
@@ -132,7 +133,7 @@ const UserCard = ({
             <div className="absolute top-0 right-0 h-full border-l-4 border-black"></div>
           </div>
           <p className="text-gray-600 text-sm whitespace-nowrap">
-            이번달 획득 Eco XP🌱: {xp} / 10000
+            이번달 RP🌱: {xp} / 10000
           </p>
           <p className="text-gray-600 text-sm">{message}</p>
         </div>
@@ -146,28 +147,35 @@ const UserCard = ({
 };
 
 const EcoProgressBar = ({ totalXP, grade }: { totalXP: number; grade: string }) => {
-  const levelUpPoints = 10000;
-  const progressPercentage = (totalXP / levelUpPoints) * 100;
-  const remainingPoints = levelUpPoints - totalXP;
+  const levelUpPoints = 10000
+  const progressPercentage = (totalXP / levelUpPoints) * 100
+  const remainingPoints = Math.max(levelUpPoints - totalXP, 0) // 음수 방지
+
+  // 🔹 툴팁 위치를 0% ~ 100% 범위로 제한
+  const tooltipPosition = Math.min(Math.max(progressPercentage, 0), 100)
+
   return (
-    <Card className="p-6 bg-white rounded-lg shadow-md relative w-full">
-      <h2 className="text-xl font-bold mb-2">
+    <Card className="flex flex-col items-center gap-4 p-4 bg-[#E8EFF4] rounded-lg shadow-lg w-full">
+      <h2 className="text-xl font-bold w-full self-start">
         나의 등급: <span className="font-normal">{grade}</span>
       </h2>
-      <br />
-      <div className="mt-4 relative w-full h-6 bg-gray-300 rounded-full overflow-visible">
+
+      {/* XP 진행 바 */}
+      <div className="w-full h-6 bg-gray-300 rounded-full overflow-hidden relative mt-2">
         <div className="h-full bg-green-500 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
         <div
           className="absolute -top-8 z-20"
-          style={{ left: `${progressPercentage}%`, transform: 'translateX(-50%)' }}
+          style={{ left: `${tooltipPosition}%`, transform: 'translateX(-50%)' }}
         >
           <div className="bg-black text-white text-xs px-3 py-1 rounded-full shadow-md whitespace-nowrap flex items-center gap-1">
-            🌱 {remainingPoints} Eco XP 남음!
+            🌱 {remainingPoints} XP 남음!
             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-black rotate-45"></div>
           </div>
         </div>
       </div>
-      <div className="flex justify-between mt-4">
+
+      {/* XP 정보 */}
+      <div className="flex justify-between w-full">
         <div className="text-left">
           <p className="text-sm text-gray-600">누적 Eco XP</p>
           <p className="text-lg font-bold text-green-600">{totalXP} XP</p>
@@ -178,8 +186,9 @@ const EcoProgressBar = ({ totalXP, grade }: { totalXP: number; grade: string }) 
         </div>
       </div>
     </Card>
-  );
-};
+  )
+}
+
 
 export function Ranking() {
   const [users, setUsers] = useState<User[]>([]);
@@ -252,7 +261,7 @@ export function Ranking() {
         {/* 상단 헤더 및 드롭다운 */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold flex items-center gap-2">
-            🏢 대림 1동 분리수거 랭킹
+            🏢 ㅇㅇ시 ㅇㅇ동 분리수거 랭킹
             <OverlayTrigger
               placement="top"
               overlay={
@@ -418,43 +427,46 @@ export function Ranking() {
         {/* 2. 사용자 카드 섹션 + 나의 등급 섹션 */}
         {currentUser && (selectedApartment === currentUser.apartment || selectedApartment === "종합랭킹") && currentIndex !== -1 && (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-            <Card className="p-0 overflow-hidden border border-gray-300 rounded-lg flex flex-col h-full">
-              {userCards.map((user, idx) => {
-                let rankDifference = '';
-                if (user.name === currentUser.name) {
-                  const percent = Math.round(((currentIndex + 1) / sortedUsers.length) * 100);
-                  rankDifference = `상위 ${percent}%`;
-                } else if (user.position === 'above') {
-                  const difference = Math.abs(sortedUsers[currentIndex].monthlyPoints - user.monthlyPoints);
-                  rankDifference = `${difference}🌱 차이!`;
-                } else if (user.position === 'below') {
-                  rankDifference = `${user.name}님이 맹 추격중!`;
-                }
-                return (
-                  <UserCard
-                    key={user.name}
-                    name={user.name}
-                    grade={user.grade}
-                    xp={user.monthlyPoints}
-                    message={`총 획득 Eco XP🌳: ${user.totalPoints}`}
-                    rank={`${sortedUsers.findIndex(u => u.name === user.name) + 1}위`}
-                    rankDifference={rankDifference}
-                    highlight={user.name === currentUser.name}
-                    isFirst={idx === 0}
-                    isLast={idx === (userCards.length - 1)}
-                  />
-                );
-              })}
-            </Card>
+            {/* 사용자 등급(±1) 카드 섹션 */}
+              <Card className="p-0 overflow-hidden border border-gray-300 rounded-lg flex flex-col h-full bg-[#E8EFF4] shadow-lg">
+                {userCards.map((user, idx) => {
+                  let rankDifference = '';
+                  if (user.name === currentUser.name) {
+                    const percent = Math.round(((currentIndex + 1) / sortedUsers.length) * 100);
+                    rankDifference = `상위 ${percent}%`;
+                  } else if (user.position === 'above') {
+                    const difference = Math.abs(sortedUsers[currentIndex].monthlyPoints - user.monthlyPoints);
+                    rankDifference = `${difference}🌱 차이!`;
+                  } else if (user.position === 'below') {
+                    rankDifference = `${user.name}님이 맹 추격중!`;
+                  }
+                  return (
+                    <UserCard
+                      key={user.name}
+                      name={user.name}
+                      grade={user.grade}
+                      xp={user.monthlyPoints}
+                      message={`총 획득 Eco XP🌳: ${user.totalPoints}`}
+                      rank={`${sortedUsers.findIndex(u => u.name === user.name) + 1}위`}
+                      rankDifference={rankDifference}
+                      highlight={user.name === currentUser.name}
+                      isFirst={idx === 0}
+                      isLast={idx === (userCards.length - 1)}
+                    />
+                  );
+                })}
+              </Card>
+
             <div className="flex flex-col gap-6">
               <EcoProgressBar totalXP={currentUser.totalPoints} grade={currentUser.grade} />
               {/* 캐릭터 카드 이미지: 클릭 시 Rank_Tier_Guide.tsx로 이동하며 state 전달 */}
               <img
-                src="/Ranking/Character_Card.png"
-                alt="Character Card"
-                className="mx-auto rounded-lg shadow-md mt-4 cursor-pointer"
-                onClick={() => navigate("/ranking/rank_tier_guide", { state: { scrollTo: 3 } })}
-              />
+                  src="/Ranking/Character_Card.png"
+                  alt="Character Card"
+                  className="mx-auto rounded-lg shadow-lg mt-4 cursor-pointer"
+                  onClick={() => navigate("/ranking/rank_tier_guide", { state: { scrollTo: 3 } })}
+                />
+
             </div>
           </div>
         )}
@@ -466,7 +478,7 @@ export function Ranking() {
             sortedUsers.slice((currentPage - 1) * 10, currentPage * 10).map((user, index) => {
               const actualIndex = (currentPage - 1) * 10 + index;
               return (
-                <Card key={user.name} className="flex items-center p-4 mb-2 shadow-sm bg-white">
+                <Card key={user.name} className="flex items-center p-4 mb-2 shadow-lg bg-[#E8EFF4]">
                   <span className="text-xl font-bold w-12">{actualIndex + 1}위</span>
                   <div className="w-16 h-16 bg-black rounded-full mx-4"></div>
                   <div className="flex-grow">
@@ -492,7 +504,7 @@ export function Ranking() {
               <Button
                 key={page + 1}
                 onClick={() => setCurrentPage(page + 1)}
-                className={currentPage === page + 1 ? "bg-black text-white mx-1" : "bg-white border border-black text-black mx-1"}
+                className={currentPage === page + 1 ? "bg-blue-400 text-white mx-1" : "bg-white border border-black text-black mx-1"}
               >
                 {page + 1}
               </Button>
