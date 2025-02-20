@@ -2,9 +2,7 @@ package com.taba7_2.sseudam.controller;
 
 import com.taba7_2.sseudam.model.AIAnalysisResult;
 import com.taba7_2.sseudam.model.RankAccount;
-import com.taba7_2.sseudam.model.MaterialSuccess;
 import com.taba7_2.sseudam.repository.AIAnalysisResultRepository;
-import com.taba7_2.sseudam.repository.MaterialSuccessRepository;
 import com.taba7_2.sseudam.service.FirebaseAuthService;
 import com.taba7_2.sseudam.service.RankCalculatorService;
 import com.taba7_2.sseudam.service.RankingService;
@@ -22,17 +20,14 @@ public class AIController {
     private final RankingService rankingService;
     private final RankCalculatorService rankCalculatorService;
     private final AIAnalysisResultRepository aiAnalysisResultRepository;
-    private final MaterialSuccessRepository materialSuccessRepository;
     private final FirebaseAuthService firebaseAuthService;
 
     public AIController(WebClient.Builder webClientBuilder, RankingService rankingService,
-                        RankCalculatorService rankCalculatorService, AIAnalysisResultRepository aiAnalysisResultRepository,
-                        MaterialSuccessRepository materialSuccessRepository, FirebaseAuthService firebaseAuthService) {
+                        RankCalculatorService rankCalculatorService, AIAnalysisResultRepository aiAnalysisResultRepository, FirebaseAuthService firebaseAuthService) {
         this.webClient = webClientBuilder.baseUrl("http://localhost:5001").build();
         this.rankingService = rankingService;
         this.rankCalculatorService = rankCalculatorService;
         this.aiAnalysisResultRepository = aiAnalysisResultRepository;
-        this.materialSuccessRepository = materialSuccessRepository;
         this.firebaseAuthService = firebaseAuthService;
     }
 
@@ -170,12 +165,6 @@ public class AIController {
             );
             aiAnalysisResultRepository.save(aiResult);
 
-            // ✅ 7. `material_success` 테이블 업데이트
-            MaterialSuccess materialSuccess = materialSuccessRepository.findByUidAndMaterial(userUid, selectedCategory)
-                    .orElse(new MaterialSuccess(userUid, selectedCategory));
-
-            materialSuccess.updateSuccessRate(isSuccess);
-            materialSuccessRepository.save(materialSuccess);
 
             // ✅ 기존 사용자 포인트 정보 가져오기
             RankAccount userRank = rankingService.getUserRanking(userUid).orElseThrow();
