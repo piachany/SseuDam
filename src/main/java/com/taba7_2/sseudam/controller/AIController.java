@@ -133,8 +133,16 @@ public class AIController {
                 default -> new ArrayList<>();
             };
 
-            // ✅ 1. 탐지된 전체 객체 개수
-            int totalDetectedObjects = processedResults.size(); // 전체 객체 개수
+            // ✅ 전체 탐지된 객체 개수
+            int totalDetectedObjects = processedResults.size();
+
+            // ✅ 올바르게 분류된 객체 개수
+            int correctlyClassifiedObjects = (int) processedResults.stream()
+                    .filter(result -> validMaterials.contains(result.get("class")) && (Double) result.get("confidence") >= 0.7)
+                    .count();
+
+            // ✅ 잘못 분류된 객체 개수
+            int incorrectlyClassifiedObjects = totalDetectedObjects - correctlyClassifiedObjects;
 
             // ✅ 2. 선택한 재질에 해당하는 confidence 값 합산
             double totalValidConfidence = processedResults.stream()
@@ -143,19 +151,17 @@ public class AIController {
                     .sum();
 
             // ✅ 3. 최종 성공률 계산 (선택한 재질 합산 / 탐지된 전체 객체 개수)
-            int finalSuccessRate = totalDetectedObjects > 0
-                    ? (int) Math.round(totalValidConfidence / totalDetectedObjects)
-                    : 0; // 탐지된 객체가 없으면 0%
+            int finalSuccessRate = (totalDetectedObjects > 0)
+                    ? (int) Math.round((correctlyClassifiedObjects * 100.0) / totalDetectedObjects)
+                    : 0;
 
             // ✅ 최종 포인트 계산 (누적 포인트가 0 이하로 내려가지 않도록 조정)
             Map<String, Integer> points = calculateTotalPoints(userUid, processedResults);
             int earned = points.get("earned");
             int deducted = points.get("deducted");
+            int finalPoints = earned - deducted;
 
             boolean isSuccess = finalSuccessRate >= 70;
-
-            // ✅ 5. 포인트 업데이트
-            rankingService.updateUserPoints(userUid, earned - deducted);
 
             // ✅ 6. 검사 결과 DB 저장
             AIAnalysisResult aiResult = new AIAnalysisResult(
@@ -171,6 +177,21 @@ public class AIController {
             materialSuccess.updateSuccessRate(isSuccess);
             materialSuccessRepository.save(materialSuccess);
 
+            // ✅ 기존 사용자 포인트 정보 가져오기
+            RankAccount userRank = rankingService.getUserRanking(userUid).orElseThrow();
+            int previousAccumulatedPoints = userRank.getAccumulatedPoints();
+
+            // ✅ 5. 포인트 업데이트
+            rankingService.updateUserPoints(userUid, earned - deducted);
+
+            // ✅ 성공률 계산
+            int successRate = (totalDetectedObjects > 0) ? (int) ((correctlyClassifiedObjects / (double) totalDetectedObjects) * 100) : 0;
+
+            // ✅ 업데이트 후 새로운 포인트 가져오기
+            RankAccount updatedUserRank = rankingService.getUserRanking(userUid).orElseThrow();
+            int updatedMonthlyPoints = updatedUserRank.getMonthlyPoints();
+            int updatedAccumulatedPoints = updatedUserRank.getAccumulatedPoints();
+
             // ✅ 포인트 업데이트 전에 기존 등급 저장
             String previousGrade = rankCalculatorService.getGrade(rankingService.getUserRanking(userUid).get().getAccumulatedPoints());
 
@@ -181,20 +202,21 @@ public class AIController {
             // ✅ 등급이 상승했을 때만 프로모션 메시지 표시
             String promotionMessage = !previousGrade.equals(newGrade) ? "🎉 축하합니다! 등급이 상승했습니다." : "";
 
-            // ✅ 8. 프론트엔드에 최종 결과 전송
-            Map<String, Object> resultResponse = Map.of(
-                    "successRate", finalSuccessRate,
-                    "success", isSuccess,
-                    "earned", earned,
-                    "deducted", deducted,
-                    "updatedMonthlyPoints", rankingService.getUserRanking(userUid).get().getMonthlyPoints(),
-                    "updatedAccumulatedPoints", rankingService.getUserRanking(userUid).get().getAccumulatedPoints(),
-                    "grade", newGrade,
-                    "pointsToNextGrade", rankCalculatorService.getPointsNeededForNextGrade(rankingService.getUserRanking(userUid).get().getAccumulatedPoints()),
-                    "promotionMessage", promotionMessage, // ✅ 등급 상승 시에만 메시지 출력
-                    "material", selectedCategory
-            );
+            // ✅ 프론트엔드 응답 데이터 구성
+            Map<String, Object> resultResponse = new HashMap<>();
+            resultResponse.put("totalDetectedObjects", totalDetectedObjects);
+            resultResponse.put("correctlyClassifiedObjects", correctlyClassifiedObjects);
+            resultResponse.put("incorrectlyClassifiedObjects", incorrectlyClassifiedObjects);
+            resultResponse.put("earnedPoints", earned);
+            resultResponse.put("deductedPoints", deducted);
+            resultResponse.put("finalPoints", finalPoints);
+            resultResponse.put("monthlyPoints", updatedMonthlyPoints);
+            resultResponse.put("accumulatedPoints", updatedAccumulatedPoints);
+            resultResponse.put("successRate", successRate);
+            resultResponse.put("grade", newGrade);
+            resultResponse.put("promotionMessage", promotionMessage);
 
+// ✅ 응답 반환
             return ResponseEntity.ok(resultResponse);
 
         } catch (Exception e) {
