@@ -28,7 +28,7 @@
       "@api/*": ["./src/api/*"]  // @api 별칭 추가
     }
   },
-  "include": ["src"],
+  "include": ["src", "src/components/BulletinBoard/.tsx"],
   "references": [
     { "path": "./tsconfig.node.json" }
   ]
