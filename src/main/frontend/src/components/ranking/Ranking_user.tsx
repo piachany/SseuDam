@@ -1,5 +1,3 @@
-// src/main/frontend/src/components/ranking/Ranking_user.tsx
-
 import { getAptRank } from "@/services/api/ranking";
 import { RankingResponse, RankingUser } from "@/types/RankingResponse";
 
@@ -20,6 +18,7 @@ const mapRankingUser = (apiUser: RankingUser): User => {
   let apartmentName = "";
   if (apiUser.apartmentId === 1) apartmentName = "공주아파트";
   else if (apiUser.apartmentId === 2) apartmentName = "왕자아파트";
+  else if (apiUser.apartmentId === 3) apartmentName = "주공아파트";
   else apartmentName = "Unknown";
 
   return {
@@ -34,7 +33,7 @@ const mapRankingUser = (apiUser: RankingUser): User => {
 };
 
 // selectedApartment 값에 따라 API에서 데이터를 받아와 매핑한 후 반환
-// selectedApartment: "공주아파트", "왕자아파트", "종합랭킹" 중 하나
+// selectedApartment: "공주아파트", "왕자아파트", "주공아파트", "종합랭킹" 중 하나
 export const fetchUsers = async (
   selectedApartment: string
 ): Promise<{ users: User[]; currentUser: User | null }> => {
@@ -42,6 +41,7 @@ export const fetchUsers = async (
     let aptParam = "";
     if (selectedApartment === "공주아파트") aptParam = "1";
     else if (selectedApartment === "왕자아파트") aptParam = "2";
+    else if (selectedApartment === "주공아파트") aptParam = "3";
     else if (selectedApartment === "종합랭킹") aptParam = "all";
 
     const data: RankingResponse = await getAptRank(aptParam);
