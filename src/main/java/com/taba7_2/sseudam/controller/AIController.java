@@ -2,9 +2,7 @@ package com.taba7_2.sseudam.controller;
 
 import com.taba7_2.sseudam.model.AIAnalysisResult;
 import com.taba7_2.sseudam.model.RankAccount;
-import com.taba7_2.sseudam.model.MaterialSuccess;
 import com.taba7_2.sseudam.repository.AIAnalysisResultRepository;
-import com.taba7_2.sseudam.repository.MaterialSuccessRepository;
 import com.taba7_2.sseudam.service.FirebaseAuthService;
 import com.taba7_2.sseudam.service.RankCalculatorService;
 import com.taba7_2.sseudam.service.RankingService;
@@ -22,41 +20,73 @@ public class AIController {
     private final RankingService rankingService;
     private final RankCalculatorService rankCalculatorService;
     private final AIAnalysisResultRepository aiAnalysisResultRepository;
-    private final MaterialSuccessRepository materialSuccessRepository;
     private final FirebaseAuthService firebaseAuthService;
 
     public AIController(WebClient.Builder webClientBuilder, RankingService rankingService,
-                        RankCalculatorService rankCalculatorService, AIAnalysisResultRepository aiAnalysisResultRepository,
-                        MaterialSuccessRepository materialSuccessRepository, FirebaseAuthService firebaseAuthService) {
+                        RankCalculatorService rankCalculatorService, AIAnalysisResultRepository aiAnalysisResultRepository, FirebaseAuthService firebaseAuthService) {
         this.webClient = webClientBuilder.baseUrl("http://localhost:5001").build();
         this.rankingService = rankingService;
         this.rankCalculatorService = rankCalculatorService;
         this.aiAnalysisResultRepository = aiAnalysisResultRepository;
-        this.materialSuccessRepository = materialSuccessRepository;
         this.firebaseAuthService = firebaseAuthService;
     }
 
     /**
-     * ✅ 성공률에 따라 포인트를 세분화하여 부여 및 차감하는 함수
-     * 최대 획득: 50점, 최대 차감: -50점 (1점 단위 세분화)
-     *
-     * @param successRate 성공률 (0~100)
-     * @return Map<String, Integer> (earned: 획득 포인트, deducted: 차감 포인트)
+     * ✅ 각 객체별 confidence 값을 기반으로 포인트 계산 (-5 ~ +5)
      */
-    private Map<String, Integer> calculatePoints(int successRate) {
-        int earned, deducted;
+    private Map<String, Integer> calculateObjectPoints(double confidence) {
+        int earned = 0;
+        int deducted = 0;
 
-        if (successRate >= 70) {
-            // ✅ 70% 이상: 획득 포인트 계산 (비례식 사용)
-            earned = (int) Math.round((successRate - 70) * (50.0 / 30.0)); // 70~100 → 0~50
-            deducted = 0;
-        } else {
-            // ✅ 70% 미만: 차감 포인트 계산 (비례식 사용)
+        if (confidence >= 0.9) {
+            earned = 5;
+        } else if (confidence >= 0.85) {
+            earned = 4;
+        } else if (confidence >= 0.8) {
+            earned = 3;
+        } else if (confidence >= 0.75) {
+            earned = 2;
+        } else if (confidence >= 0.7) {
+            earned = 1;
+        } else if (confidence >= 0.6) {
             earned = 0;
-            deducted = (int) Math.round((70 - successRate) * (50.0 / 70.0)); // 0~69 → 50~0
+        } else if (confidence >= 0.4) {
+            deducted = -1;
+        } else if (confidence >= 0.3) {
+            deducted = -2;
+        } else if (confidence >= 0.2) {
+            deducted = -3;
+        } else if (confidence >= 0.1) {
+            deducted = -4;
+        } else {
+            deducted = -5;
         }
 
         return Map.of("earned", earned, "deducted", deducted);
+    }
+
+    /**
+     * ✅ AI 분석 결과를 기반으로 포인트 총합 계산 (-5 ~ +5 범위 적용)
+     */
+    private Map<String, Integer> calculateTotalPoints(String userUid, List<Map<String, Object>> detectedObjects) {
+        int totalEarned = 0;
+        int totalDeducted = 0;
+
+        for (Map<String, Object> obj : detectedObjects) {
+            double confidence = (Double) obj.get("confidence");
+            Map<String, Integer> points = calculateObjectPoints(confidence);
+
+            totalEarned += points.get("earned");
+            totalDeducted += points.get("deducted");
+        }
+
+        // ✅ 현재 사용자의 누적 포인트 가져오기
+        int currentAccumulatedPoints = rankingService.getUserRanking(userUid).get().getAccumulatedPoints();
+
+        // ✅ 감점이 누적 포인트보다 크면, 감점을 조정하여 총 포인트가 0 이하로 내려가지 않도록 함
+        totalDeducted = Math.min(Math.abs(totalDeducted), currentAccumulatedPoints);
+
+        return Map.of("earned", totalEarned, "deducted", totalDeducted);
     }
 
     @GetMapping("/results")
@@ -98,8 +128,16 @@ public class AIController {
                 default -> new ArrayList<>();
             };
 
-            // ✅ 1. 탐지된 전체 객체 개수
-            int totalDetectedObjects = processedResults.size(); // 전체 객체 개수
+            // ✅ 전체 탐지된 객체 개수
+            int totalDetectedObjects = processedResults.size();
+
+            // ✅ 올바르게 분류된 객체 개수
+            int correctlyClassifiedObjects = (int) processedResults.stream()
+                    .filter(result -> validMaterials.contains(result.get("class")) && (Double) result.get("confidence") >= 0.7)
+                    .count();
+
+            // ✅ 잘못 분류된 객체 개수
+            int incorrectlyClassifiedObjects = totalDetectedObjects - correctlyClassifiedObjects;
 
             // ✅ 2. 선택한 재질에 해당하는 confidence 값 합산
             double totalValidConfidence = processedResults.stream()
@@ -108,19 +146,17 @@ public class AIController {
                     .sum();
 
             // ✅ 3. 최종 성공률 계산 (선택한 재질 합산 / 탐지된 전체 객체 개수)
-            int finalSuccessRate = totalDetectedObjects > 0
-                    ? (int) Math.round(totalValidConfidence / totalDetectedObjects)
-                    : 0; // 탐지된 객체가 없으면 0%
+            int finalSuccessRate = (totalDetectedObjects > 0)
+                    ? (int) Math.round((correctlyClassifiedObjects * 100.0) / totalDetectedObjects)
+                    : 0;
 
-            // ✅ 4. 포인트 계산 (1점 단위 적용)
-            Map<String, Integer> points = calculatePoints(finalSuccessRate);
+            // ✅ 최종 포인트 계산 (누적 포인트가 0 이하로 내려가지 않도록 조정)
+            Map<String, Integer> points = calculateTotalPoints(userUid, processedResults);
             int earned = points.get("earned");
             int deducted = points.get("deducted");
+            int finalPoints = earned - deducted;
 
             boolean isSuccess = finalSuccessRate >= 70;
-
-            // ✅ 5. 포인트 업데이트
-            rankingService.updateUserPoints(userUid, earned - deducted);
 
             // ✅ 6. 검사 결과 DB 저장
             AIAnalysisResult aiResult = new AIAnalysisResult(
@@ -129,27 +165,47 @@ public class AIController {
             );
             aiAnalysisResultRepository.save(aiResult);
 
-            // ✅ 7. `material_success` 테이블 업데이트
-            MaterialSuccess materialSuccess = materialSuccessRepository.findByUidAndMaterial(userUid, selectedCategory)
-                    .orElse(new MaterialSuccess(userUid, selectedCategory));
 
-            materialSuccess.updateSuccessRate(isSuccess);
-            materialSuccessRepository.save(materialSuccess);
+            // ✅ 기존 사용자 포인트 정보 가져오기
+            RankAccount userRank = rankingService.getUserRanking(userUid).orElseThrow();
+            int previousAccumulatedPoints = userRank.getAccumulatedPoints();
 
-            // ✅ 8. 프론트엔드에 최종 결과 전송
-            Map<String, Object> resultResponse = Map.of(
-                    "successRate", finalSuccessRate,
-                    "success", isSuccess,
-                    "earned", earned,
-                    "deducted", deducted,
-                    "updatedMonthlyPoints", rankingService.getUserRanking(userUid).get().getMonthlyPoints(),
-                    "updatedAccumulatedPoints", rankingService.getUserRanking(userUid).get().getAccumulatedPoints(),
-                    "grade", rankCalculatorService.getGrade(rankingService.getUserRanking(userUid).get().getAccumulatedPoints()),
-                    "pointsToNextGrade", rankCalculatorService.getPointsNeededForNextGrade(rankingService.getUserRanking(userUid).get().getAccumulatedPoints()),
-                    "promotionMessage", isSuccess ? "🎉 축하합니다! 등급이 상승했습니다." : "",
-                    "material", selectedCategory
-            );
+            // ✅ 5. 포인트 업데이트
+            rankingService.updateUserPoints(userUid, earned - deducted);
 
+            // ✅ 성공률 계산
+            int successRate = (totalDetectedObjects > 0) ? (int) ((correctlyClassifiedObjects / (double) totalDetectedObjects) * 100) : 0;
+
+            // ✅ 업데이트 후 새로운 포인트 가져오기
+            RankAccount updatedUserRank = rankingService.getUserRanking(userUid).orElseThrow();
+            int updatedMonthlyPoints = updatedUserRank.getMonthlyPoints();
+            int updatedAccumulatedPoints = updatedUserRank.getAccumulatedPoints();
+
+            // ✅ 포인트 업데이트 전에 기존 등급 저장
+            String previousGrade = rankCalculatorService.getGrade(rankingService.getUserRanking(userUid).get().getAccumulatedPoints());
+
+
+            // ✅ 업데이트 후 새로운 등급 가져오기
+            String newGrade = rankCalculatorService.getGrade(rankingService.getUserRanking(userUid).get().getAccumulatedPoints());
+
+            // ✅ 등급이 상승했을 때만 프로모션 메시지 표시
+            String promotionMessage = !previousGrade.equals(newGrade) ? "🎉 축하합니다! 등급이 상승했습니다." : "";
+
+            // ✅ 프론트엔드 응답 데이터 구성
+            Map<String, Object> resultResponse = new HashMap<>();
+            resultResponse.put("totalDetectedObjects", totalDetectedObjects);
+            resultResponse.put("correctlyClassifiedObjects", correctlyClassifiedObjects);
+            resultResponse.put("incorrectlyClassifiedObjects", incorrectlyClassifiedObjects);
+            resultResponse.put("earnedPoints", earned);
+            resultResponse.put("deductedPoints", deducted);
+            resultResponse.put("finalPoints", finalPoints);
+            resultResponse.put("monthlyPoints", updatedMonthlyPoints);
+            resultResponse.put("accumulatedPoints", updatedAccumulatedPoints);
+            resultResponse.put("successRate", successRate);
+            resultResponse.put("grade", newGrade);
+            resultResponse.put("promotionMessage", promotionMessage);
+
+// ✅ 응답 반환
             return ResponseEntity.ok(resultResponse);
 
         } catch (Exception e) {

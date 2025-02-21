@@ -43,3 +43,4 @@ ai_server/models/last.pt
 src/main/resources/
 ai_server/venv/
 ai_server/models/last.pt
+ai_server/
