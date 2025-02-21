@@ -1,0 +1,201 @@
+/* 전체 컨테이너 */
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  margin-top: -30px;
+  animation: float 3s ease-in-out infinite;
+}
+
+/* CCTV 스타일 */
+.cctv {
+  position: absolute;
+  top: -20px;
+  right: -25px;
+  width: 35px;
+  height: 25px;
+  background: linear-gradient(145deg, #4a90e2, #5a9ee8);
+  border-radius: 8px 8px 3px 3px;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: rotate(25deg);
+  z-index: 3;
+}
+
+.cctv:before {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  width: 5px;
+  height: 15px;
+  background: linear-gradient(to bottom, #5a9ee8, #4a90e2);
+  transform: translateX(-50%);
+  border-radius: 5px;
+}
+
+.cctv_light {
+  width: 8px;
+  height: 8px;
+  background-color: #ff5252;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #ff5252;
+  animation: blink 1.5s infinite alternate;
+}
+
+/* 쓰레기통 본체 */
+.trash_can {
+  position: relative;
+  width: 80px;
+  height: 100px;
+  background: linear-gradient(145deg, #72d0e8, #60c0e0);
+  border-radius: 10px 10px 25px 25px;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 1;
+}
+
+.trash_can:after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.3));
+  border-radius: 0 0 25px 25px;
+}
+
+/* 쓰레기통 뚜껑 */
+.trash_lid {
+  position: absolute;
+  top: -15px;
+  left: -5px;
+  width: 90px;
+  height: 20px;
+  background: linear-gradient(145deg, #5ac8e0, #45b8d0);
+  border-radius: 15px 15px 0 0;
+  transform-origin: 15% 0;
+  transform: rotate(-5deg);
+  box-shadow: 0 -3px 5px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+  animation: openCloseLid 2.5s ease-in-out infinite;
+}
+
+.trash_lid:after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  width: 15px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+}
+
+.trash_lid:before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 10px;
+  width: 25px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+}
+
+/* 쓰레기통 아이콘 */
+.recycle_icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff' opacity='0.7'%3E%3Cpath d='M21.1,16.2L19.8,14L17,16.2L18.3,18.4C16.9,19.4 15.1,20 13.3,20C8.8,20 5,16.2 5,11.7C5,10.5 5.3,9.3 5.8,8.2L3.7,6.1C2.6,7.8 2,9.7 2,11.7C2,17.8 7.2,23 13.3,23C16.5,23 19.3,21.7 21.3,19.5L22.6,21.7L24,20.5L21.1,16.2M7.5,5.8L9,4.1L6.1,1.9L4.6,3.6C4,4.4 3.5,5.2 3.1,6.1L5.2,8.2C5.9,7.3 6.7,6.4 7.5,5.8M13.3,1C10.1,1 7.3,2.3 5.2,4.5L3.9,2.3L2.5,3.5L5.4,7.8L6.7,10L9.5,7.8L8.2,5.6C9.7,4.6 11.4,4 13.3,4C17.8,4 21.6,7.8 21.6,12.3C21.6,13.5 21.3,14.7 20.8,15.8L22.9,17.9C24,16.2 24.6,14.3 24.6,12.3C24.6,6.2 19.4,1 13.3,1Z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.5;
+}
+
+/* 분석 문구 */
+.loading_text {
+  font-size: 1.2rem;
+  margin-top: 15px;
+  font-weight: 500;
+  color: #45b8d0;
+  animation: fadeInOut 2s infinite alternate;
+}
+
+/* 애니메이션 효과 */
+@keyframes openCloseLid {
+  0% {
+    transform: rotate(-5deg);
+  }
+  30% {
+    transform: rotate(-40deg);
+  }
+  40% {
+    transform: rotate(-40deg);
+  }
+  70% {
+    transform: rotate(-5deg);
+  }
+  100% {
+    transform: rotate(-5deg);
+  }
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0.5;
+    box-shadow: 0 0 5px #ff5252;
+  }
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 15px #ff5252, 0 0 20px #ff8080;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.fade_out {
+  animation: fade-out 1s forwards;
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
