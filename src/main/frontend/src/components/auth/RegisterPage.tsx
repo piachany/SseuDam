@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { FcGoogle } from "react-icons/fc"; // Google 아이콘
+import { RiKakaoTalkFill } from "react-icons/ri"; // Kakao 아이콘
+import { SiNaver } from "react-icons/si"; // Naver 아이콘
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -217,30 +220,24 @@ export function RegisterPage() {
         </Button>
         </form>
 
-        {/* 소셜 로그인, 로그인 버튼들 */}
+        {/* ✅ 소셜 로그인 버튼 */}
         <h3 className="text-xl font-bold mt-10">소셜 계정으로 더 쉽게 가입하기</h3>
         <div className="flex flex-col gap-4 mt-4">
-          <Button
-            className="flex items-center gap-2 bg-red-500 text-white hover:bg-red-600"
-            onClick={() => handleSocialLogin("Google")}
-            type="button"
-          >
-            Google ID로 가입
-          </Button>
-          <Button
-            className="flex items-center gap-2 bg-yellow-400 text-black hover:bg-yellow-500"
-            onClick={() => handleSocialLogin("Kakao")}
-            type="button"
-          >
-            Kakao ID로 가입
-          </Button>
-          <Button
-            className="flex items-center gap-2 bg-green-500 text-white hover:bg-green-600"
-            onClick={() => handleSocialLogin("Naver")}
-            type="button"
-          >
-            Naver ID로 가입
-          </Button>
+          {[
+            { provider: "Google", bgColor: "bg-white", textColor: "text-gray-800", hoverBg: "hover:bg-gray-200", icon: <FcGoogle className="w-6 h-6" /> },
+            { provider: "Kakao", bgColor: "bg-yellow-400", textColor: "text-black", hoverBg: "hover:bg-yellow-500", icon: <RiKakaoTalkFill className="w-6 h-6 text-black" /> },
+            { provider: "Naver", bgColor: "bg-green-500", textColor: "text-white", hoverBg: "hover:bg-green-600", icon: <SiNaver className="w-6 h-6 text-white" /> }
+          ].map(({ provider, bgColor, textColor, hoverBg, icon }) => (
+            <Button
+              key={provider}
+              className={`flex items-center gap-3 px-4 py-2 w-full rounded-full ${bgColor} ${textColor} ${hoverBg} shadow-md`}
+              onClick={() => handleSocialLogin(provider)}
+              type="button"
+           >
+              {icon}
+              <span className="font-semibold">{provider} ID로 가입</span>
+            </Button>
+         ))}
         </div>
 
         <div className="mt-6 text-center">

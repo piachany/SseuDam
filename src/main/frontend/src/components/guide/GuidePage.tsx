@@ -18,7 +18,7 @@ export function GuidePage() {
     종이: '/images/paper.png',
     비닐: '/images/vinyl.png',
     금속: '/images/metal.png',
-    스티로폼: '/images/styroform.png',
+    스티로폼: '/images/styrofoam.png',
   }
 
   const materialIcons: Record<string, string> = {
@@ -42,31 +42,9 @@ export function GuidePage() {
     setSelectedMaterial(null)
   }
 
-  const guideImages = Array.from({ length: 4 }, (_, i) => `/Guide/${i + 1}.png`)
-
-  // 📌 애니메이션 설정 함수
-  const getAnimation = (index: number) => {
-    switch (index) {
-      case 0: return { y: 50 } // 아래 → 위
-      case 1: return { x: -100 } // 좌 → 우
-      case 2: return { x: 100 } // 우 → 좌
-      case 3: return { y: 100 } // 아래 → 위
-      default: return { y: 0 }
-    }
-  }
-
-  // 📌 아래로 스크롤하는 함수
-  const scrollDown = () => {
-    window.scrollBy({ top: window.innerHeight * 1.48, behavior: 'smooth' })
-  }
-
-  // 새로운 함수: 재질별 분리배출 가이드 섹션으로 스크롤
-  const scrollToGuide = () => {
-    const guideSection = document.getElementById("guide-section")
-    if (guideSection) {
-      guideSection.scrollIntoView({ behavior: 'smooth' })
-    }
-  }
+  // 기존 다중 이미지 대신 단일 이미지 사용
+  // const guideImages = Array.from({ length: 4 }, (_, i) => `/Guide/${i + 1}.png`)
+  const guideImages = ["/Guide/guide.jpg"]
 
   return (
     <div className="relative min-h-screen">
@@ -96,20 +74,22 @@ export function GuidePage() {
               src={src}
               alt={`가이드 이미지 ${index + 1}`}
               className="w-full max-w-5xl h-auto"
-              initial={{ opacity: 0, ...getAnimation(index) }}
-              whileInView={{ opacity: 1, x: 0, y: 0 }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true, amount: 0.1 }}
-              transition={{ duration: 0.5, delay: index * 0.3 }}
+              transition={{ duration: 0.5 }}
               onError={(e) => {
                 console.error(`이미지 로딩 실패: ${src}`)
                 ;(e.target as HTMLImageElement).src = '/images/default.png'
               }}
             />
 
-            {/* 📍 아래로 스크롤 화살표 및 좌우 버튼 (첫 이미지에만) */}
+            {/* 📍 버튼 컨테이너 */}
             {index === 0 && (
               <div className="absolute top-[80%] left-[47%] transform -translate-x-1/2 flex items-center space-x-6">
-                {/* 왼쪽 버튼: 재질별 분리배출 방법 → 스크롤 이동 */}
+                
+                {/* 🔹 재질별 분리배출 방법 버튼 (나중에 사용) */}
+                {/*
                 <motion.button
                   onClick={scrollToGuide}
                   whileHover={{ scale: 1.05 }}
@@ -118,8 +98,10 @@ export function GuidePage() {
                 >
                   재질별 분리배출 방법
                 </motion.button>
+                */}
 
-                {/* 기존 스크롤 화살표 */}
+                {/* 🔹 기존 스크롤 화살표 버튼 (나중에 사용) */}
+                {/*
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1, y: [0, 10, 0] }}
@@ -138,8 +120,10 @@ export function GuidePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </motion.div>
+                */}
 
-                {/* 오른쪽 버튼 (비활성) */}
+                {/* 🔹 3D 모델 버튼 (나중에 사용) */}
+                {/*
                 <motion.button
                   disabled
                   whileHover={{ scale: 1.05 }}
@@ -147,6 +131,7 @@ export function GuidePage() {
                 >
                   3D 모델로 분리배출 알아보기
                 </motion.button>
+                */}
               </div>
             )}
           </section>
@@ -193,10 +178,6 @@ export function GuidePage() {
             src={selectedMaterial ? materialImages[selectedMaterial] : '/images/default.png'} 
             alt={`${selectedMaterial ?? '알 수 없음'} 분리배출`} 
             className="w-full h-auto object-cover mb-4 rounded-lg"
-            onError={(e) => {
-              console.error(`이미지를 불러오는 데 실패했습니다: ${materialImages[selectedMaterial ?? '']}`)
-              ;(e.target as HTMLImageElement).src = '/images/default.png'
-            }}
           />
           <p className="text-gray-600 mb-4">{selectedMaterial}에 대한 올바른 분리배출 방법을 확인하세요.</p>
         </Modal>

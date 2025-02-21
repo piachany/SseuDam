@@ -1,61 +1,77 @@
-// src/components/ranking/Ranking_user.tsx
-// import axios from 'axios' 
+import { getAptRank } from "@/services/api/ranking";
+import { RankingResponse, RankingUser } from "@/types/RankingResponse";
 
 // 📝 User 데이터 타입 정의
 export interface User {
-  rank: number
-  name: string
-  grade: string 
-  monthlyPoints: number
-  totalPoints: number
-  apartment: string // 아파트 필드 추가
-  bgColor?: string
-  crownColor?: string
+  rank: number;
+  name: string;
+  grade: string;
+  monthlyPoints: number;
+  totalPoints: number;
+  apartment: string; // 아파트 필드
+  bgColor?: string;
+  crownColor?: string;
 }
 
-// ✅ 공주아파트 유저 데이터
-const gongjuUsers: User[] = [
-  { rank: 1, name: "초록콩", grade: "🌟에코 히어로", apartment: "공주아파트", bgColor: "bg-yellow-100", crownColor: "text-yellow-400", monthlyPoints: 1500, totalPoints: 12000 },
-  { rank: 2, name: "햇살둥이", grade: "🌍지구 지키미", apartment: "공주아파트", bgColor: "bg-gray-200", crownColor: "text-gray-400", monthlyPoints: 1400, totalPoints: 8000 },
-  { rank: 3, name: "김제니", grade: "🗑 분리배출 견습생", apartment: "공주아파트", bgColor: "bg-orange-100", crownColor: "text-orange-400", monthlyPoints: 1200, totalPoints: 2300 },
-  { rank: 4, name: "지구사랑", grade: "🌍지구 지키미", apartment: "공주아파트", monthlyPoints: 900, totalPoints: 7000 },
-  { rank: 5, name: "작은숲", grade: "🌿지구 친구", apartment: "공주아파트", monthlyPoints: 850, totalPoints: 5100 },
-  { rank: 6, name: "반짝별", grade: "🌿지구 친구", apartment: "공주아파트", monthlyPoints: 800, totalPoints: 4500 },
-  { rank: 7, name: "푸른바다", grade: "🌍지구 지키미", apartment: "공주아파트", monthlyPoints: 750, totalPoints: 6600 },
-  { rank: 8, name: "하늘콩", grade: "🌍지구 지키미", apartment: "공주아파트", monthlyPoints: 700, totalPoints: 6500 },
-  { rank: 9, name: "초코칩", grade: "🌿지구 친구", apartment: "공주아파트", monthlyPoints: 650, totalPoints: 3200 },
-  { rank: 10, name: "쓰레기맨", grade: "💀환경 테러범", apartment: "공주아파트", monthlyPoints: 600, totalPoints: 950 },
-  { rank: 11, name: "일쓰봉", grade: "💀환경 테러범", apartment: "공주아파트", monthlyPoints: 400, totalPoints: 970 }
-]
+// API로 받아온 RankingUser 데이터를 내부 User로 매핑하는 함수
+const mapRankingUser = (apiUser: RankingUser): User => {
+  let apartmentName = "";
+  if (apiUser.apartmentId === 1) apartmentName = "공주아파트";
+  else if (apiUser.apartmentId === 2) apartmentName = "왕자아파트";
+  else if (apiUser.apartmentId === 3) apartmentName = "주공아파트";
+  else apartmentName = "Unknown";
 
-// ✅ 왕자아파트 유저 데이터
-const princeUsers: User[] = [
-  { rank: 1, name: "펭귄대장", grade: "🌟에코 히어로", apartment: "왕자아파트", bgColor: "bg-yellow-100", crownColor: "text-yellow-400", monthlyPoints: 1600, totalPoints: 12500 },
-  { rank: 2, name: "햇살미소", grade: "🌍지구 지키미", apartment: "왕자아파트", bgColor: "bg-gray-200", crownColor: "text-gray-400", monthlyPoints: 1350, totalPoints: 8500 },
-  { rank: 3, name: "분리짱짱", grade: "🗑 분리배출 견습생", apartment: "왕자아파트", bgColor: "bg-orange-100", crownColor: "text-orange-400", monthlyPoints: 1100, totalPoints: 3100 },
-  { rank: 4, name: "지구뿌셔", grade: "🌍지구 지키미", apartment: "왕자아파트", monthlyPoints: 950, totalPoints: 7100 },
-  { rank: 5, name: "티니핑", grade: "🌿지구 친구", apartment: "왕자아파트", monthlyPoints: 870, totalPoints: 5200 },
-  { rank: 6, name: "다람쥐짱", grade: "🌿지구 친구", apartment: "왕자아파트", monthlyPoints: 820, totalPoints: 4600 },
-  { rank: 7, name: "푸른별빛", grade: "🌍지구 지키미", apartment: "왕자아파트", monthlyPoints: 770, totalPoints: 6700 },
-  { rank: 8, name: "하늘토끼", grade: "🌍지구 지키미", apartment: "왕자아파트", monthlyPoints: 720, totalPoints: 6600 },
-  { rank: 9, name: "초코볼", grade: "🌿지구 친구", apartment: "왕자아파트", monthlyPoints: 670, totalPoints: 3300 },
-  { rank: 10, name: "지구파괴", grade: "💀환경 테러범", apartment: "왕자아파트", monthlyPoints: 620, totalPoints: 980 },
-  { rank: 11, name: "쓰레기요정", grade: "💀환경 테러범", apartment: "왕자아파트", monthlyPoints: 300, totalPoints: 900 }
-]
+  return {
+    // 기존 ranking 값은 무시하고, 추후 재할당할 예정입니다.
+    rank: apiUser.ranking,
+    name: apiUser.nickname,
+    grade: apiUser.grade,
+    monthlyPoints: apiUser.monthlyPoints,
+    totalPoints: apiUser.accumulatedPoints,
+    apartment: apartmentName,
+  };
+};
 
-
-// ✅ 모든 유저 데이터 통합 (종합랭킹용)
-export const allUsers = [...gongjuUsers, ...princeUsers]
-
-
-// ✅ 사용자 데이터 가져오기 함수 (추후 API 연동을 위한 구조)
-export const fetchUsers = async (): Promise<User[]> => {
+// selectedApartment 값에 따라 API에서 데이터를 받아와 매핑한 후 반환
+// selectedApartment: "공주아파트", "왕자아파트", "주공아파트", "종합랭킹" 중 하나
+export const fetchUsers = async (
+  selectedApartment: string
+): Promise<{ users: User[]; currentUser: User | null }> => {
   try {
-    return allUsers // 현재는 더미 데이터 반환
-  } catch (error) {
-    console.error("Error fetching users:", error)
-    return allUsers
-  }
-}
+    let aptParam = "";
+    if (selectedApartment === "공주아파트") aptParam = "1";
+    else if (selectedApartment === "왕자아파트") aptParam = "2";
+    else if (selectedApartment === "주공아파트") aptParam = "3";
+    else if (selectedApartment === "종합랭킹") aptParam = "all";
 
-console.log("allUsers length:", allUsers.length);
+    const data: RankingResponse = await getAptRank(aptParam);
+    const apiUsers = data.selectedApartmentRankings || [];
+    let mappedUsers = apiUsers.map(mapRankingUser);
+
+    // 이번달 Eco XP(즉, monthlyPoints)를 기준으로 내림차순 정렬
+    mappedUsers.sort((a, b) => b.monthlyPoints - a.monthlyPoints);
+
+    // 정렬된 순서에 따라 rank 재할당 및 상위 3등 메달 색상 지정
+    mappedUsers = mappedUsers.map((user, index) => {
+      const newUser = { ...user, rank: index + 1 };
+      if (index === 0) {
+        newUser.bgColor = "bg-yellow-100";  // 1등: 금색
+        newUser.crownColor = "text-yellow-400";
+      } else if (index === 1) {
+        newUser.bgColor = "bg-gray-200";     // 2등: 은색
+        newUser.crownColor = "text-gray-400";
+      } else if (index === 2) {
+        newUser.bgColor = "bg-orange-100";   // 3등: 동색
+        newUser.crownColor = "text-orange-400";
+      }
+      return newUser;
+    });
+
+    // 현재 사용자 데이터는 그대로 매핑 (필요시 별도 처리 가능)
+    const currentUser = data.user ? mapRankingUser(data.user) : null;
+    return { users: mappedUsers, currentUser };
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return { users: [], currentUser: null };
+  }
+};
