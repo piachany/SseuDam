@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { BellIcon, UserIcon, TrashIcon, LogOutIcon } from "lucide-react"
-
+import styled from "styled-components"
 
 export function SettingsPage() {
   const navigate = useNavigate()
@@ -20,18 +20,10 @@ export function SettingsPage() {
       <div className="mt-4 bg-white shadow-md rounded-xl flex-1 overflow-auto divide-y">
         <SettingItem icon={<UserIcon size={22} />} text="비밀번호 재설정" onClick={() => navigate("/settings/account")} />
         <SettingItem icon={<BellIcon size={22} />} text="알림 설정">
-          <ToggleSwitch isEnabled={isPushEnabled} onToggle={() => setIsPushEnabled(!isPushEnabled)} />
+          <StyledToggleSwitch isEnabled={isPushEnabled} onToggle={() => setIsPushEnabled(!isPushEnabled)} />
         </SettingItem>
         <SettingItem icon={<LogOutIcon size={22} />} text="로그아웃" onClick={() => navigate("/auth")} />
-
-        {/* 🔴 회원탈퇴 (더 작고 눈에 덜 띄게) */}
-        <SettingItem 
-          icon={<TrashIcon size={18} />} 
-          text="회원탈퇴" 
-          textColor="text-red-400 text-sm" 
-          className="py-3 px-4 opacity-80"
-          onClick={() => navigate("/auth")} 
-        />
+        <SettingItem icon={<TrashIcon size={18} />} text="회원탈퇴" textColor="text-red-400 text-sm" className="py-3 px-4 opacity-80" onClick={() => navigate("/auth")} />
       </div>
     </div>
   )
@@ -53,20 +45,46 @@ function SettingItem({ icon, text, onClick, children, textColor = "text-gray-900
   )
 }
 
-/* ✅ 토글 스위치 */
-function ToggleSwitch({ isEnabled, onToggle }: { isEnabled: boolean, onToggle: () => void }) {
+/* ✅ styled-components 기반 토글 스위치 */
+const StyledToggleSwitch = ({ isEnabled, onToggle }: { isEnabled: boolean, onToggle: () => void }) => {
   return (
-    <div
-      className={`w-14 h-7 flex items-center rounded-full cursor-pointer p-1 transition-all ${
-        isEnabled ? "bg-blue-500" : "bg-gray-300"
-      }`}
-      onClick={onToggle}
-    >
-      <div
-        className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-all ${
-          isEnabled ? "translate-x-7" : "translate-x-0"
-        }`}
-      />
-    </div>
+    <StyledWrapper isEnabled={isEnabled} onClick={onToggle}>
+      <div className="slider">
+        <div className="knob" />
+      </div>
+    </StyledWrapper>
   )
 }
+
+const StyledWrapper = styled.div<{ isEnabled: boolean }>`
+  width: 60px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  background-color: ${({ isEnabled }) => (isEnabled ? "#2196F3" : "lightgray")};
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.25) inset;
+  padding: 2px;
+
+  .slider {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
+  .knob {
+    width: 26px;
+    height: 26px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.25);
+    transform: ${({ isEnabled }) => (isEnabled ? "translateX(30px)" : "translateX(0)")};
+  }
+`;
+
+export default SettingsPage;

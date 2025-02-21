@@ -97,7 +97,8 @@ const WeeklyGraphCard = () => {
   }))
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md border border-green-200 mb-4">
+    <div className="bg-[#ECF1F6] p-6 rounded-lg shadow-md border border-green-200 mb-4">
+
       <h3 className="text-xl font-semibold text-center mb-4">📊 요일별 성공률 </h3>
       <ResponsiveContainer width={700} height={300}>
         <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
@@ -138,7 +139,8 @@ const MonthlyGraphCard = () => {
   const currentData = monthlyData[selectedMonth] || []
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md border border-green-200 mb-4">
+    <div className="bg-[#ECF1F6] p-6 rounded-lg shadow-md border border-green-200 mb-4">
+
       <div className="flex justify-start mb-4">
         <select
           value={selectedMonth}
@@ -189,7 +191,8 @@ const RankingGraphCard = () => {
   }))
   
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md border border-green-200">
+    <div className="bg-[#ECF1F6] p-6 rounded-lg shadow-md border border-green-200 mb-4">
+
       <h3 className="text-xl font-semibold text-center mb-4">📊 월 평균 주민 & 유저 데이터</h3>
       <ResponsiveContainer width={700} height={300}>
         <LineChart data={rankingData}>
@@ -217,10 +220,10 @@ export default function RecyclingStats() {
     <div className="flex flex-col items-center justify-center min-h-screen p-6">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">♻️ 분리배출 기록</h1>
 
-      <div className="relative w-[1000px] h-[600px] flex items-center justify-center overflow-hidden p-8 bg-white rounded-lg shadow-lg border border-green-300">
+      <div className="relative w-[1000px] h-[600px] flex items-center justify-center overflow-hidden p-8 bg-#E8EFF4 rounded-lg shadow-lg border border-green-300">
         <Button
           onClick={prevCard}
-          className="absolute left-[20px] top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-gray-300 to-blue-400 text-white px-6 py-3 rounded-full hover:scale-110 transition-all duration-300 ease-in-out shadow-lg"
+          className="absolute left-[20px] top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-gray-300 to-blue-400 text-whitepx-6 py-3 rounded-full hover:scale-110 transition-all duration-300 ease-in-out shadow-lg"
         >
           ←
         </Button>
