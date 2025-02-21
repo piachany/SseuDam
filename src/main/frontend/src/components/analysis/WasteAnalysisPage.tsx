@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import BackgroundAnimation from "@/components/layout/BackgroudAnimation"
 
+// Define section ref type
+type SectionRefs = Array<HTMLDivElement | null>;
+
 // 🌟 WasteAnalysisPage Component
 export default function WasteAnalysisPage() {
   const navigate = useNavigate()
   const [currentSection, setCurrentSection] = useState(0)
-
-  // 🛠️ useRef 타입을 HTMLDivElement로 명확히 지정
-  const sectionsRef = useRef<Array<HTMLDivElement | null>>([])
+  const sectionsRef = useRef<SectionRefs>([])
 
   // 🔹 특정 섹션으로 부드럽게 스크롤
   const scrollToSection = (index: number) => {
@@ -42,9 +43,12 @@ export default function WasteAnalysisPage() {
       <div className="relative z-50 pt-16">
         
         {/* ✅ 1️⃣ 첫 번째 섹션: 애니메이션 타이틀 */}
-        <section ref={(el: HTMLDivElement | null) => (sectionsRef.current[0] = el)} 
-        className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50 relative">
-          
+        <section
+          ref={(el) => {
+            if (el) sectionsRef.current[0] = el
+          }}
+          className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50 relative"
+        >
           {/* 🌏 배경 애니메이션 */}
           <motion.div
             className="absolute inset-0 flex items-center justify-center opacity-30 z-0"
@@ -96,8 +100,18 @@ export default function WasteAnalysisPage() {
         </section>
 
         {/* ✅ 2️⃣ 두 번째 섹션: 로딩 화면 */}
-        <section ref={(el: HTMLDivElement | null) => (sectionsRef.current[1] = el)} className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1, y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-lg mb-4">
+        <section
+          ref={(el) => {
+            if (el) sectionsRef.current[1] = el
+          }}
+          className="min-w-full h-screen flex flex-col items-center justify-center text-center bg-white/50"
+        >
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, y: [0, 10, 0] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="text-lg mb-4"
+          >
             로딩 중...
           </motion.div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 1 }}>
@@ -113,7 +127,12 @@ export default function WasteAnalysisPage() {
         </section>
 
         {/* ✅ 3️⃣ 세 번째 섹션: AI 분석 결과 */}
-        <section ref={(el: HTMLDivElement | null) => (sectionsRef.current[2] = el)} className="min-w-full py-20 flex flex-col items-center justify-center text-center bg-white/50">
+        <section
+          ref={(el) => {
+            if (el) sectionsRef.current[2] = el
+          }}
+          className="min-w-full py-20 flex flex-col items-center justify-center text-center bg-white/50"
+        >
           <h2 className="text-4xl font-bold">AI 분석 결과</h2>
           <p className="text-gray-500">재질 및 상태 분류 결과를 확인하세요</p>
 
@@ -163,30 +182,29 @@ export default function WasteAnalysisPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 // 🌟 카드 UI 컴포넌트
 interface CardProps {
-  material: string;
-  status: string;
-  img: string;
+  material: string
+  status: string
+  img: string
 }
 
 const cardData: CardProps[] = [
-  { material: "플라스틱", status: "깨끗함", img:"Intro/plastic1.png" },
-  { material: "종이", status: "일부 오염",  img:"Intro/paper1.png" },
-  { material: "캔", status: "깨끗함", img:"Intro/can1.png" },
-  { material: "유리", status: "깨끗함",  img:"Intro/glass1.png" },
-  { material: "비닐", status: "일부 오염",  img:"Intro/vinyl1.png" },
-  { material: "철", status: "깨끗함", img:"Intro/metal1.png" }
-];
+  { material: "플라스틱", status: "깨끗함", img: "Intro/plastic1.png" },
+  { material: "종이", status: "일부 오염", img: "Intro/paper1.png" },
+  { material: "캔", status: "깨끗함", img: "Intro/can1.png" },
+  { material: "유리", status: "깨끗함", img: "Intro/glass1.png" },
+  { material: "비닐", status: "일부 오염", img: "Intro/vinyl1.png" },
+  { material: "철", status: "깨끗함", img: "Intro/metal1.png" }
+]
 
-const Card = ({ material, status,img }: CardProps) => (
+const Card = ({ material, status, img }: CardProps) => (
   <div className="w-72 bg-white/70 shadow-md rounded-lg overflow-hidden hover:scale-105 transition-transform">
     <div className="h-40 bg-gray-200/50 flex items-center justify-center">
-    <img src={img} alt={material} className="w-10 h-10 object-contain" />
-      
+      <img src={img} alt={material} className="w-10 h-10 object-contain" />
     </div>
     <div className="p-4">
       <h3 className="text-lg font-bold">{material}</h3>

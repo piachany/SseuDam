@@ -102,7 +102,7 @@ function MainLayout() {
   const location = useLocation()
 
   // ✅ 헤더 숨기기 조건 수정: 회사 소개 페이지(/)와 관리자 페이지(/admin/*)에서 헤더 숨기기
-  const hideHeader = location.pathname === "/" || location.pathname.startsWith("/admin")
+  const hideHeader = location.pathname === "/" || location.pathname.startsWith("/admin");
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -110,7 +110,8 @@ function MainLayout() {
       {/* 조건부 렌더링: / 또는 /admin 경로에서는 Header 숨기기 */}
       {!hideHeader && <Header />}
 
-      <main className="flex-grow">
+       {/* main 요소에 pt-16 클래스 추가 (헤더가 보이는 경우에만) */}
+       <main className={`flex-grow ${!hideHeader ? 'pt-16' : ''}`}>
         <Routes>
           {/* 회사 소개 페이지 (앱 실행 시 기본 페이지) */}
           <Route path="/" element={<CompanyIntroPage />} />

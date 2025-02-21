@@ -1,4 +1,3 @@
-// src/services/api/auth.ts
 import axios from "axios";
 import { LoginRequest, LoginResponse, User } from "@/types/auth";
 import { auth } from "@/lib/firebase/firebase"; // ✅ Firebase 인증 추가
@@ -43,16 +42,24 @@ export const login = async (loginData: LoginRequest): Promise<User> => {
       localStorage.setItem("token", newToken.replace("Bearer ", ""));
     }
 
-    // ✅ 사용자 정보 저장
+    // ✅ 사용자 정보 저장 (필드 매칭 수정)
     const userData: User = {
       uid: response.data.uid,
       email: response.data.email,
       nickname: response.data.nickname,
-      createdAt: response.data.created_at,
-      lastLogin: response.data.last_login,
-      isGuest: false,
-      role: "user",
+      created_at: response.data.created_at,
+      last_login: response.data.last_login,
+      isGuest: response.data.isGuest,
+      role: response.data.role,
+      grade: response.data.grade || "등급 없음", // ✅ 현재 등급 반영
+      points_needed_for_promotion: response.data.pointsNeededForPromotion || response.data.points_needed_for_promotion || 0,
+      accumulatedPoints: response.data.accumulatedPoints || 0,
+      monthlyPoints: response.data.monthlyPoints || 0, // ✅ 월별 포인트 반영
+      redirect_url: response.data.redirect_url || "/home",
+      pointsNeededForPromotion: response.data.pointsNeededForPromotion || response.data.points_needed_for_promotion || 0
     };
+
+    console.log("🟢 저장된 사용자 데이터:", userData);
 
     localStorage.setItem("user", JSON.stringify(userData));
     return userData;
@@ -71,7 +78,7 @@ export const fetchUserData = async (): Promise<User> => {
     const firebaseToken = await getFirebaseToken(); // ✅ Firebase 토큰 가져오기
     console.log("🔍 사용자 데이터 요청 중...");
 
-    const response = await axios.get<User>(`${API_BASE_URL}/api/users/me`, {
+    const response = await axios.get<LoginResponse>(`${API_BASE_URL}/api/users/me`, {
       headers: {
         "Authorization": firebaseToken, // ✅ Firebase 토큰 추가
         "Content-Type": "application/json",
@@ -79,9 +86,42 @@ export const fetchUserData = async (): Promise<User> => {
     });
 
     console.log("✅ 사용자 데이터 요청 성공:", response.data);
-    return response.data;
+
+    // ✅ 서버에서 받은 응답을 변환하여 `User` 타입에 맞게 저장
+    const userData: User = {
+      uid: response.data.uid,
+      email: response.data.email,
+      nickname: response.data.nickname,
+      created_at: response.data.created_at,
+      last_login: response.data.last_login,
+      isGuest: response.data.isGuest,
+      role: response.data.role,
+      grade: response.data.grade || "등급 없음",  // ✅ 현재 등급 반영
+      points_needed_for_promotion: response.data.pointsNeededForPromotion || response.data.points_needed_for_promotion || 0,
+      accumulatedPoints: response.data.accumulatedPoints || 0,
+      monthlyPoints: response.data.monthlyPoints || 0,  // ✅ 월별 포인트 반영
+      redirect_url: response.data.redirect_url || "/home",
+      pointsNeededForPromotion: response.data.pointsNeededForPromotion || response.data.points_needed_for_promotion || 0
+    };
+
+    console.log("🟢 저장된 사용자 데이터:", userData);
+
+    return userData;
   } catch (error) {
     console.error("❌ 사용자 데이터 가져오기 실패:", error);
+    throw error;
+  }
+};
+
+// ✅ 로그아웃 처리
+export const logout = async (): Promise<void> => {
+  try {
+    await auth.signOut();
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    console.log("✅ 로그아웃 성공");
+  } catch (error) {
+    console.error("❌ 로그아웃 실패:", error);
     throw error;
   }
 };
