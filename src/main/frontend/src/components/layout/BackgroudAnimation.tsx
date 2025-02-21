@@ -12,11 +12,8 @@ const BackgroundAnimation = () => {
     style={{ 
       background: 'linear-gradient(to bottom, rgba(217, 234, 244, 0.9), rgba(251, 248, 239, 0.9))',
       backdropFilter: 'blur(3px)'
-    }} 
- 
-  >
-
-
+    }}
+    >
       {/* ☁️ 구름 애니메이션 */}
       {[1, 2, 3].map((cloud) => ( 
         <motion.img

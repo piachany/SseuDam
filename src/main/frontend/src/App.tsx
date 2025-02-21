@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import HomePage from "@/components/auth/HomePage";
 import { AuthPage } from "@/components/auth/AuthPage";
 import WasteAnalysisPage from "./components/analysis/WasteAnalysisPage";
-import Rewards from "@/components/reward/Rewards";
+import Bulletinboard from "@/components/BulletinBoard/bulletinboard"
 import { SettingsPage } from "@/components/settings/SettingsPage";
 import { Header } from "@/components/shared/Header";
 import { Ranking } from "@/components/ranking/Ranking"
@@ -147,10 +147,10 @@ function MainLayout() {
             }
           />
           <Route
-            path="/rewards"
+            path="/bulletinboard"
             element={
               <ProtectedRoute>
-                <Rewards />
+                <Bulletinboard />
               </ProtectedRoute>
             }
           />

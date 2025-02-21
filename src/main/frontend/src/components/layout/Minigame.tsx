@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
 interface MinigameProps {
-  className?: string;  // ✅ className을 prop으로 받을 수 있도록 추가
+  className?: string;
 }
 
 export default function Minigame({ className }: MinigameProps) {
@@ -10,120 +10,184 @@ export default function Minigame({ className }: MinigameProps) {
   const [quizIndex, setQuizIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [remainingAttempts, setRemainingAttempts] = useState(3);
+  const [loading, setLoading] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
+  const hasInitialized = useRef(false); // ✅ 중복 실행 방지
+
+  // ✅ 로그인한 사용자 이메일 가져오기
+  useEffect(() => {
+    if (hasInitialized.current) return; // ✅ 한 번만 실행
+    hasInitialized.current = true;
+
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    if (storedUser?.email) {
+      console.log("✅ 로그인된 사용자 이메일:", storedUser.email);
+      setUserEmail(storedUser.email);
+    } else {
+      console.warn("⚠️ 사용자 정보 없음. 로그인 필요");
+    }
+  }, []);
+
+  // ✅ 퀴즈 데이터
   const quizQuestions = [
     {
       question: "플라스틱 병을 올바르게 버리려면?",
       options: ["물로 헹군 후 버린다", "라벨을 제거하고 버린다", "뚜껑을 닫아 버린다"],
       answer: "라벨을 제거하고 버린다",
     },
-    { question: "음식물이 묻은 종이컵은?", 
-      options: ["종이류로 분리배출", "일반 쓰레기", "세척 후 종이류 배출"], 
-      answer: "일반 쓰레기" 
-    }
-  ]
+    {
+      question: "음식물이 묻은 종이컵은?",
+      options: ["종이류로 분리배출", "일반 쓰레기", "세척 후 종이류 배출"],
+      answer: "일반 쓰레기",
+    },
+    {
+      question: "깨진 유리는 어떻게 버릴까?",
+      options: ["유리병으로 배출", "일반 쓰레기로 배출", "고철류로 배출"],
+      answer: "일반 쓰레기로 배출",
+    },
+    {
+      question: "택배 상자의 스티커는?",
+      options: ["그대로 배출", "제거 후 배출", "물에 불려서 배출"],
+      answer: "제거 후 배출",
+    },
+  ];
 
-  const handleAnswer = (option: string) => {
+  // ✅ 사용자별 도전 횟수 저장
+  useEffect(() => {
+    if (!userEmail) return;
+
+    const today = new Date().toISOString().split("T")[0];
+    const storedData = JSON.parse(localStorage.getItem(`quizData_${userEmail}`) || "{}");
+
+    if (storedData.date === today) {
+      setRemainingAttempts(storedData.remainingAttempts);
+      setScore(storedData.score);
+    } else {
+      resetQuizData(today);
+    }
+
+    setQuizIndex(Math.floor(Math.random() * quizQuestions.length)); // ✅ 랜덤 문제 선택
+  }, [userEmail]);
+
+  // ✅ 퀴즈 데이터 초기화
+  const resetQuizData = (date: string) => {
+    setRemainingAttempts(3);
+    setScore(0);
+    localStorage.setItem(
+      `quizData_${userEmail}`,
+      JSON.stringify({ date, remainingAttempts: 3, score: 0 })
+    );
+  };
+
+  // ✅ 정답 제출 & 포인트 적립 API 호출
+  const submitCorrectAnswer = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("http://localhost:8080/api/quiz/correct", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userEmail }),
+      });
+
+      if (!response.ok) {
+        throw new Error("포인트 적립에 실패했습니다.");
+      }
+
+      const data = await response.json();
+      console.log("✅ 포인트 적립 성공:", data.message);
+    } catch (error) {
+      console.error(error);
+      alert("⚠️ 포인트 적립 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAnswer = async (option: string) => {
+    if (remainingAttempts === 0 || !userEmail) return;
+
     setSelectedAnswer(option);
+    let newScore = score;
+    let newAttempts = remainingAttempts - 1;
+
     if (option === quizQuestions[quizIndex].answer) {
-      setScore((prev) => prev + 10);
-      setMessage("✅ 정답입니다! +10점");
+      newScore += 1;
+      setMessage("✅ 정답입니다! +1점");
+      await submitCorrectAnswer();
     } else {
       setMessage("❌ 틀렸어요! 다시 도전해보세요.");
     }
 
+    setScore(newScore);
+    setRemainingAttempts(newAttempts);
+
+    const today = new Date().toISOString().split("T")[0];
+    localStorage.setItem(
+      `quizData_${userEmail}`,
+      JSON.stringify({ date: today, remainingAttempts: newAttempts, score: newScore })
+    );
+
     setTimeout(() => {
       setMessage("");
       setSelectedAnswer(null);
-      setQuizIndex((prev) => (prev + 1) % quizQuestions.length);
+      setQuizIndex(Math.floor(Math.random() * quizQuestions.length));
     }, 2000);
   };
 
   return (
-    <motion.div 
-      initial={{ x: -100, opacity: 0 }} 
-      animate={{ x: 0, opacity: 1 }} 
-      transition={{ duration: 0.5 }} 
-      className="hidden md:flex flex-col w-72 bg-[#F5FFF5] text-[#1B5E20] p-6 space-y-4 rounded-2xl shadow-lg border border-[#43A047] relative"
-      style={{
-        boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15), 0px 0px 10px rgba(67, 160, 71, 0.3)"
-      }}
+    <motion.div
+      initial={{ x: -100, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className={`hidden md:flex flex-col w-64 bg-[#43A047] text-white p-6 space-y-4 rounded-r-lg shadow-lg ${className}`}
     >
-      {/* 제목 */}
-      <h2 className="text-2xl font-bold text-center whitespace-nowrap"
-        style={{ 
-          textShadow: "0px 0px 8px rgba(67, 160, 71, 0.5)", 
-          letterSpacing: "1px"
-        }}>
-        🌿 친환경 미니게임
-      </h2>
+      <h2 className="text-2xl font-bold text-center whitespace-nowrap">🌿 친환경 미니게임</h2>
 
-      {/* 환경 퀴즈 섹션 */}
-      <div className="bg-[#DDEDC3] p-4 rounded-xl shadow-md border border-[#43A047]">
-        <h3 className="text-xl font-semibold text-[#1B5E20]">🌱 환경 퀴즈</h3>
-        <p className="text-sm mt-2">{quizQuestions[quizIndex].question}</p>
+      {userEmail ? (
+        <p className="text-center text-sm text-gray-200">남은 기회: {remainingAttempts} / 3</p>
+      ) : (
+        <p className="text-center text-sm text-red-400">로그인이 필요합니다.</p>
+      )}
 
-        <div className="mt-3 space-y-2">
-          {quizQuestions[quizIndex].options.map((option) => (
-            <motion.button
-              key={option}
-              onClick={() => handleAnswer(option)}
-              whileTap={{ scale: 0.95 }}
-              whileHover={{ scale: 1.05 }}
-              className={`block w-full py-2 text-sm rounded-md transition font-semibold shadow ${
-                selectedAnswer === option
-                  ? option === quizQuestions[quizIndex].answer
-                    ? "bg-[#2E7D32] text-white shadow-lg"
-                    : "bg-[#E53935] text-white shadow-lg"
-                  : "bg-gradient-to-b from-[#43A047] to-[#388E3C] text-white hover:shadow-lg hover:scale-105 transition-all"
-              }`}
-              disabled={selectedAnswer !== null}
-            >
-              {option}
-            </motion.button>
-          ))}
-        </div>
+      {userEmail ? (
+        remainingAttempts > 0 ? (
+          <div className="bg-green-700 p-4 rounded-lg shadow">
+            <h3 className="text-xl font-semibold">🌱 환경 퀴즈</h3>
+            <p className="text-sm mt-2">{quizQuestions[quizIndex].question}</p>
 
-        {message && (
-          <motion.p
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="mt-2 text-sm text-center font-bold text-[#1B5E20]"
-          >
-            {message}
-          </motion.p>
-        )}
-      </div>
+            <div className="mt-3 space-y-2">
+              {quizQuestions[quizIndex].options.map((option) => (
+                <motion.button
+                  key={option}
+                  onClick={() => handleAnswer(option)}
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  className={`block w-full py-2 text-sm rounded-md transition ${
+                    selectedAnswer === option
+                      ? option === quizQuestions[quizIndex].answer
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                      : "bg-[#388E3C] hover:bg-green-600"
+                  }`}
+                  disabled={selectedAnswer !== null || loading}
+                >
+                  {loading && option === quizQuestions[quizIndex].answer ? "포인트 적립 중..." : option}
+                </motion.button>
+              ))}
+            </div>
 
-      {/* 친환경 점수 섹션 */}
-      <div className="bg-[#DDEDC3] p-4 rounded-xl shadow-md border border-[#43A047]">
-        <h3 className="text-xl font-semibold flex items-center justify-center gap-2 whitespace-nowrap">
-          🌎 나의 친환경 점수
-        </h3>
-        
-        <motion.p
-          key={score}
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="text-2xl font-bold text-center mt-2 text-[#1B5E20]"
-          style={{ textShadow: "0px 0px 8px rgba(27, 94, 32, 0.6)" }}
-        >
-          {score} P
-        </motion.p>
-
-        {score < 50 && (
-          <p className="text-sm text-center mt-2 text-[#E53935] font-semibold">
-            📌 50점 미만! 유튜브 영상 시청 권장!
-          </p>
-        )}
-        {score === 100 && (
-          <p className="text-sm text-center mt-2 text-[#1E88E5] font-semibold">
-            🎉 100점 달성! 분리배출로 포인트 쌓으러 가기! ♻️
-          </p>
-        )}
-      </div>
+            {message && <p className="mt-2 text-sm text-center">{message}</p>}
+          </div>
+        ) : (
+          <p className="text-sm text-center text-yellow-200">🚫 오늘 도전 횟수가 끝났습니다. 내일 다시 도전하세요! 🌍</p>
+        )
+      ) : null}
     </motion.div>
   );
 }
