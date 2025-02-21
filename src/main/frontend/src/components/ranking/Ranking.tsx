@@ -49,7 +49,7 @@ const AnimationStyles = () => (
       20.00001%, 25% {
         opacity: 0;
       }
-      25.00001%, 45% {
+      25.00001%, 66% {
         background-position: 75% 0%;
         opacity: 1;
       }
@@ -112,7 +112,6 @@ const UserCard = ({
     ${isLast ? 'rounded-b-lg border-b border-l border-r' : ''}
     ${!isFirst && !isLast ? 'border-l border-r' : ''}
     ${highlight ? 'bg-blue-200' : 'bg-[#E8EFF4]'}
-
   `;
   return (
     <div className={`p-4 flex flex-col justify-center flex-1 ${borderClasses}`}>
@@ -147,12 +146,12 @@ const UserCard = ({
 };
 
 const EcoProgressBar = ({ totalXP, grade }: { totalXP: number; grade: string }) => {
-  const levelUpPoints = 10000
-  const progressPercentage = (totalXP / levelUpPoints) * 100
-  const remainingPoints = Math.max(levelUpPoints - totalXP, 0) // 음수 방지
+  const levelUpPoints = 10000;
+  const progressPercentage = (totalXP / levelUpPoints) * 100;
+  const remainingPoints = Math.max(levelUpPoints - totalXP, 0); // 음수 방지
 
-  // 🔹 툴팁 위치를 0% ~ 100% 범위로 제한
-  const tooltipPosition = Math.min(Math.max(progressPercentage, 0), 100)
+  // 툴팁 위치를 0% ~ 100% 범위로 제한
+  const tooltipPosition = Math.min(Math.max(progressPercentage, 0), 100);
 
   return (
     <Card className="flex flex-col items-center gap-4 p-4 bg-[#E8EFF4] rounded-lg shadow-lg w-full">
@@ -177,24 +176,25 @@ const EcoProgressBar = ({ totalXP, grade }: { totalXP: number; grade: string }) 
       {/* XP 정보 */}
       <div className="flex justify-between w-full">
         <div className="text-left">
-          <p className="text-sm text-gray-600">누적 Eco XP</p>
+          <p className="text-sm text-gray-600">누적 VP🌳</p>
           <p className="text-lg font-bold text-green-600">{totalXP} XP</p>
         </div>
         <div className="text-right">
-          <p className="text-sm text-gray-600">다음 등급 XP</p>
+          <p className="text-sm text-gray-600">다음 등급 VP🌳</p>
           <p className="text-lg font-bold text-gray-600">{levelUpPoints} XP</p>
         </div>
       </div>
     </Card>
-  )
-}
-
+  );
+};
 
 export function Ranking() {
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  // 초기값은 "공주아파트"로 지정하지만, 최초 로드 시 현재 유저의 아파트로 한 번만 업데이트할 예정입니다.
   const [selectedApartment, setSelectedApartment] = useState("공주아파트");
+  const [initialSelectionSet, setInitialSelectionSet] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -211,6 +211,16 @@ export function Ranking() {
     loadData();
   }, [selectedApartment]);
 
+  // 최초 로드 시 한 번만 현재 유저의 아파트로 초기 선택값을 업데이트 (다른 선택 시 덮어쓰지 않음)
+  useEffect(() => {
+    if (!initialSelectionSet && currentUser && currentUser.apartment !== "종합랭킹") {
+      if (currentUser.apartment !== selectedApartment) {
+        setSelectedApartment(currentUser.apartment);
+      }
+      setInitialSelectionSet(true);
+    }
+  }, [currentUser, selectedApartment, initialSelectionSet]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedApartment]);
@@ -219,8 +229,7 @@ export function Ranking() {
     ? users
     : users.filter(user => user.apartment === selectedApartment);
 
-    const sortedUsers = [...filteredUsers].sort((a, b) => a.rank - b.rank);
-
+  const sortedUsers = [...filteredUsers].sort((a, b) => a.rank - b.rank);
 
   const currentIndex = currentUser ? sortedUsers.findIndex(u => u.name === currentUser.name) : -1;
 
@@ -286,6 +295,7 @@ export function Ranking() {
             <Dropdown.Menu>
               <Dropdown.Item onClick={() => setSelectedApartment("공주아파트")}>공주아파트</Dropdown.Item>
               <Dropdown.Item onClick={() => setSelectedApartment("왕자아파트")}>왕자아파트</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedApartment("주공아파트")}>주공아파트</Dropdown.Item>
               <Dropdown.Item onClick={() => setSelectedApartment("종합랭킹")}>종합랭킹</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
@@ -312,8 +322,8 @@ export function Ranking() {
                             <FaCrown className={`mb-2 text-3xl ${medal.crown}`} />
                             <h2 className="text-xl font-bold">{user.name}</h2>
                             <p className="text-sm">{user.grade}</p>
-                            <p className="text-xs">이번달 Eco XP: {user.monthlyPoints}</p>
-                            <p className="text-xs">총 Eco XP: {user.totalPoints}</p>
+                            <p className="text-xs">이번달 VP🌱: {user.monthlyPoints}</p>
+                            <p className="text-xs">누적 VP🌳: {user.totalPoints}</p>
                           </div>
                         </div>
                       </div>
@@ -342,8 +352,8 @@ export function Ranking() {
                             <FaCrown className={`mb-2 text-4xl ${medal.crown}`} />
                             <h2 className="text-2xl font-bold">{user.name}</h2>
                             <p className="text-lg">{user.grade}</p>
-                            <p className="text-md">이번달 Eco XP: {user.monthlyPoints}</p>
-                            <p className="text-md">총 Eco XP: {user.totalPoints}</p>
+                            <p className="text-md">이번달 VP🌱: {user.monthlyPoints}</p>
+                            <p className="text-md">누적 VP🌳: {user.totalPoints}</p>
                           </div>
                         </div>
                       </div>
@@ -372,8 +382,8 @@ export function Ranking() {
                             <FaCrown className={`mb-2 text-3xl ${medal.crown}`} />
                             <h2 className="text-xl font-bold">{user.name}</h2>
                             <p className="text-sm">{user.grade}</p>
-                            <p className="text-xs">이번달 Eco XP: {user.monthlyPoints}</p>
-                            <p className="text-xs">총 Eco XP: {user.totalPoints}</p>
+                            <p className="text-xs">이번달 VP🌱: {user.monthlyPoints}</p>
+                            <p className="text-xs">누적 VP🌳: {user.totalPoints}</p>
                           </div>
                         </div>
                       </div>
@@ -413,8 +423,8 @@ export function Ranking() {
                       <FaCrown className={`mb-2 text-3xl ${crownColor}`} />
                       <h2 className="text-xl font-bold">{user.name}</h2>
                       <p className="text-sm">{user.grade}</p>
-                      <p className="text-xs">이번달 Eco XP: {user.monthlyPoints}</p>
-                      <p className="text-xs">총 Eco XP: {user.totalPoints}</p>
+                      <p className="text-xs">이번달 VP🌱: {user.monthlyPoints}</p>
+                      <p className="text-xs">누적 VP🌳: {user.totalPoints}</p>
                     </div>
                   </div>
                   <div className="mt-2 font-bold text-sm">{rankLabel}</div>
@@ -428,45 +438,44 @@ export function Ranking() {
         {currentUser && (selectedApartment === currentUser.apartment || selectedApartment === "종합랭킹") && currentIndex !== -1 && (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             {/* 사용자 등급(±1) 카드 섹션 */}
-              <Card className="p-0 overflow-hidden border border-gray-300 rounded-lg flex flex-col h-full bg-[#E8EFF4] shadow-lg">
-                {userCards.map((user, idx) => {
-                  let rankDifference = '';
-                  if (user.name === currentUser.name) {
-                    const percent = Math.round(((currentIndex + 1) / sortedUsers.length) * 100);
-                    rankDifference = `상위 ${percent}%`;
-                  } else if (user.position === 'above') {
-                    const difference = Math.abs(sortedUsers[currentIndex].monthlyPoints - user.monthlyPoints);
-                    rankDifference = `${difference}🌱 차이!`;
-                  } else if (user.position === 'below') {
-                    rankDifference = `${user.name}님이 맹 추격중!`;
-                  }
-                  return (
-                    <UserCard
-                      key={user.name}
-                      name={user.name}
-                      grade={user.grade}
-                      xp={user.monthlyPoints}
-                      message={`총 획득 Eco XP🌳: ${user.totalPoints}`}
-                      rank={`${sortedUsers.findIndex(u => u.name === user.name) + 1}위`}
-                      rankDifference={rankDifference}
-                      highlight={user.name === currentUser.name}
-                      isFirst={idx === 0}
-                      isLast={idx === (userCards.length - 1)}
-                    />
-                  );
-                })}
-              </Card>
+            <Card className="p-0 overflow-hidden border border-gray-300 rounded-lg flex flex-col h-full bg-[#E8EFF4] shadow-lg">
+              {userCards.map((user, idx) => {
+                let rankDifference = '';
+                if (user.name === currentUser.name) {
+                  const percent = Math.round(((currentIndex + 1) / sortedUsers.length) * 100);
+                  rankDifference = `상위 ${percent}%`;
+                } else if (user.position === 'above') {
+                  const difference = Math.abs(sortedUsers[currentIndex].monthlyPoints - user.monthlyPoints);
+                  rankDifference = `${difference}🌱 차이!`;
+                } else if (user.position === 'below') {
+                  rankDifference = `${user.name}님이 맹 추격중!`;
+                }
+                return (
+                  <UserCard
+                    key={user.name}
+                    name={user.name}
+                    grade={user.grade}
+                    xp={user.monthlyPoints}
+                    message={`누적 VP🌳: ${user.totalPoints}`}
+                    rank={`${sortedUsers.findIndex(u => u.name === user.name) + 1}위`}
+                    rankDifference={rankDifference}
+                    highlight={user.name === currentUser.name}
+                    isFirst={idx === 0}
+                    isLast={idx === (userCards.length - 1)}
+                  />
+                );
+              })}
+            </Card>
 
             <div className="flex flex-col gap-6">
               <EcoProgressBar totalXP={currentUser.totalPoints} grade={currentUser.grade} />
               {/* 캐릭터 카드 이미지: 클릭 시 Rank_Tier_Guide.tsx로 이동하며 state 전달 */}
               <img
-                  src="/Ranking/Character_Card.png"
-                  alt="Character Card"
-                  className="mx-auto rounded-lg shadow-lg mt-4 cursor-pointer"
-                  onClick={() => navigate("/ranking/rank_tier_guide", { state: { scrollTo: 3 } })}
-                />
-
+                src="/Ranking/Character_Card.png"
+                alt="Character Card"
+                className="mx-auto rounded-lg shadow-lg mt-4 cursor-pointer"
+                onClick={() => navigate("/ranking/rank_tier_guide", { state: { scrollTo: 3 } })}
+              />
             </div>
           </div>
         )}
@@ -487,8 +496,8 @@ export function Ranking() {
                     <div className="w-full bg-gray-200 h-4 rounded mt-2 mb-1">
                       <div className="bg-green-400 h-4 rounded" style={{ width: `${(user.monthlyPoints / 10000) * 100}%` }}></div>
                     </div>
-                    <p className="text-gray-600 text-sm">이번달 Eco XP🌱: {user.monthlyPoints} / 10000</p>
-                    <p className="text-gray-600 text-sm">총 Eco XP🌳: {user.totalPoints}</p>
+                    <p className="text-gray-600 text-sm">이번달 VP🌱: {user.monthlyPoints} / 10000</p>
+                    <p className="text-gray-600 text-sm">누적 VP🌳: {user.totalPoints}</p>
                   </div>
                 </Card>
               );
