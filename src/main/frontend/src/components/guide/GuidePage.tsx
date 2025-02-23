@@ -37,7 +37,7 @@ export function GuidePage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   // 1~10.jpg 이미지 리스트로 변경
-  const guideImages = Array.from({ length: 10 }, (_, i) => `/Guide/${i + 1}.jpg`)
+  const guideImages = Array.from({ length: 9 }, (_, i) => `/Guide/${i + 1}.jpg`)
 
   // 재질별 분리배출 관련 이미지 & 아이콘
   const materialImages: Record<string, string> = {
@@ -125,18 +125,17 @@ export function GuidePage() {
 
               {/* 스크롤 인디케이터 - 첫 번째 이미지에만 표시 */}
               {index === 0 && <ScrollIndicator />}
-
-              {/* 🚀 시작하기 버튼 - 마지막 이미지(10.jpg)에서 가운데 정렬 */}
+              
               {index === guideImages.length - 1 && (
                 <button
                   className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-green-500 
-                             text-white px-8 py-4 rounded-xl hover:bg-green-600 
-                             transition-colors text-lg font-medium backdrop-blur-md"
+                            text-white px-8 py-4 rounded-xl hover:bg-green-600 
+                            transition-colors text-lg font-medium backdrop-blur-md"
                   onClick={() => navigate("/waste-analysis")}
                 >
                   시작하기
                 </button>
-              )}
+)}
             </div>
           </motion.div>
         ))}
