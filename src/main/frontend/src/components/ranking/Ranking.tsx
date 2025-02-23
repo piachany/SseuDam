@@ -503,7 +503,7 @@ export function Ranking() {
               );
             })
           ) : (
-            <p className="text-center text-gray-500">랭킹 데이터가 없습니다.</p>
+            <p className="text-center text-gray-500">랭킹 데이터 로딩중...</p>
           )}
           <div className="flex justify-center mt-4">
             <Button onClick={handlePrevPage} disabled={currentPage === 1} className="mx-2 bg-black text-white">
