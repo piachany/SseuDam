@@ -131,7 +131,13 @@ export function GuidePage() {
                   className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-green-500 
                             text-white px-8 py-4 rounded-xl hover:bg-green-600 
                             transition-colors text-lg font-medium backdrop-blur-md"
-                  onClick={() => navigate("/waste-analysis")}
+                            onClick={() => {
+                              navigate("/waste-analysis");
+                              setTimeout(() => {
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                              }, 100); // 페이지 전환 후 실행되도록 약간의 딜레이 추가
+                            }}
+                            
                 >
                   시작하기
                 </button>
